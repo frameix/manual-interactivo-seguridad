@@ -1,0 +1,894 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="author" content="Carlos Willy Ruiz Villalobos /Albert Gaitan Pezo / Mejora">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet"
+        crossorigin="anonymous">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <style>
+        body {
+            background-color: #f0f2f5;
+            font-size: 15px;
+            font-family: 'Poppins', sans-serif;
+            color: #333;
+        }
+
+        .header-logo {
+            max-height: 80px;
+            object-fit: contain;
+        }
+
+        .card {
+            border: none;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+            margin-bottom: 20px;
+        }
+
+        .card-header {
+            background-color: #fff;
+            border-bottom: 1px solid #eee;
+            font-weight: 600;
+            color: #2c3e50;
+        }
+
+        table.table-center td,
+        table.table-center th {
+            text-align: center;
+            vertical-align: middle;
+            height: 2.5rem;
+            background-color: #e9ecef;
+            transition: all 0.2s;
+        }
+
+        table.table-center td:hover {
+            opacity: 0.9;
+        }
+
+        .bg-yellow {
+            background-color: #faf206 !important;
+            color: #000;
+        }
+
+        .bg-dark-custom {
+            background-color: #8e44ad !important;
+            color: white;
+        }
+
+        .bg-info-custom {
+            background-color: #2c3e50 !important;
+            color: #fff;
+        }
+
+        .form-control-sm {
+            border-radius: 4px;
+            border: 1px solid #ced4da;
+        }
+
+        .form-control-sm:focus {
+            box-shadow: 0 0 0 0.2rem rgba(142, 68, 173, 0.25);
+            border-color: #8e44ad;
+        }
+
+        .btn-primary {
+            background-color: #8e44ad;
+            border-color: #8e44ad;
+        }
+
+        .btn-primary:hover {
+            background-color: #732d91;
+            border-color: #732d91;
+        }
+
+        .table-eventos th {
+            background-color: #f8f9fa;
+            font-weight: 600;
+        }
+
+        /* Para el PDF */
+        .pdf-container {
+            background: #fff;
+            padding: 20px;
+            border-radius: 10px;
+        }
+
+        .hide-on-export {
+            display: block;
+        }
+
+        .exporting .hide-on-export {
+            display: none !important;
+        }
+
+        .exporting input[type="number"] {
+            border: none;
+            background: transparent;
+            pointer-events: none;
+            -moz-appearance: textfield;
+            font-weight: bold;
+        }
+
+        .exporting input[type="number"]::-webkit-outer-spin-button,
+        .exporting input[type="number"]::-webkit-inner-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+
+        .exporting .card {
+            box-shadow: none !important;
+            border: 1px solid #eee;
+        }
+
+        .table-eventos tr {
+            page-break-inside: avoid;
+        }
+
+        /* Dark Mode */
+        body.dark-mode {
+            background-color: #121212;
+            color: #e0e0e0;
+        }
+
+        body.dark-mode header.bg-white {
+            background-color: #1e1e1e !important;
+            border-bottom: 1px solid #333;
+        }
+
+        body.dark-mode .text-primary,
+        body.dark-mode h2.univ-title {
+            color: #e0e0e0 !important;
+        }
+
+        body.dark-mode .text-secondary,
+        body.dark-mode .text-muted {
+            color: #aaa !important;
+        }
+
+        body.dark-mode .card {
+            background-color: #1e1e1e;
+            border-color: #333;
+        }
+
+        body.dark-mode .card-header,
+        body.dark-mode .pdf-container {
+            background-color: #1e1e1e;
+            color: #e0e0e0;
+            border-color: #333;
+        }
+
+        body.dark-mode .table td,
+        body.dark-mode .table th,
+        body.dark-mode td.bg-white {
+            background-color: #242424;
+            color: #e0e0e0;
+            border-color: #444;
+        }
+
+        body.dark-mode .table-center td,
+        body.dark-mode .table-center th {
+            background-color: #2c2c2c;
+        }
+
+        .default-cell {
+            background-color: #e9ecef;
+        }
+
+        body.dark-mode .default-cell {
+            background-color: #242424 !important;
+            color: #e0e0e0 !important;
+        }
+
+        body.dark-mode .form-control-sm {
+            background-color: #2c2c2c;
+            color: #fff;
+            border-color: #555;
+        }
+
+        body.dark-mode .bg-info-custom {
+            background-color: #34495e !important;
+        }
+
+        body.dark-mode .bg-dark-custom {
+            background-color: #5e35b1 !important;
+            color: #fff !important;
+        }
+
+        @media (max-width: 768px) {
+            .univ-title {
+                font-size: 1.15rem !important;
+                line-height: 1.3;
+            }
+
+            header h5 {
+                font-size: 0.85rem !important;
+                margin-top: 0.25rem !important;
+            }
+
+            header h6 {
+                font-size: 0.75rem !important;
+            }
+
+            .header-logo {
+                height: 60px !important;
+                margin-bottom: 0.5rem;
+            }
+
+            .table-sm td,
+            .table-sm th {
+                padding: 0.15rem !important;
+                font-size: 0.7rem !important;
+            }
+
+            .form-control-sm {
+                padding: 0.1rem !important;
+                font-size: 0.75rem !important;
+                height: 26px !important;
+                text-align: center;
+                min-width: 0;
+                width: 100%;
+            }
+
+            .bg-dark-custom,
+            .bg-info-custom {
+                font-size: 0.65rem !important;
+                word-wrap: break-word;
+            }
+
+            #table-matriz td {
+                font-size: 0.8rem !important;
+                padding: 0 !important;
+                vertical-align: middle;
+            }
+
+            .table-responsive {
+                overflow-x: visible !important;
+            }
+
+            .modal-dialog {
+                margin: 0.5rem;
+                max-width: calc(100% - 1rem);
+            }
+        }
+
+        /* Fix table alignments and hide number spinners */
+        .matrix-table {
+            table-layout: fixed;
+            width: 100%;
+        }
+
+        input[type="number"]::-webkit-inner-spin-button,
+        input[type="number"]::-webkit-outer-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+
+        input[type="number"] {
+            -moz-appearance: textfield;
+        }
+    </style>
+    <title>MATRIZ DE RIESGO - UNSM - FISI</title>
+</head>
+
+<body>
+    <header class="bg-white py-3 shadow-sm mb-4">
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="col-md-3 text-center text-md-start mb-3 mb-md-0">
+                    <img src="https://upload.wikimedia.org/wikipedia/commons/d/db/Escudo_de_la_UNSM.png" alt="Logo UNSM"
+                        class="header-logo" crossorigin="anonymous">
+                </div>
+                <div class="col-md-9 text-center text-md-end">
+                    <h2 class="univ-title mb-0" style="color: #2c3e50; font-weight: 600;">UNIVERSIDAD NACIONAL DE SAN
+                        MARTIN</h2>
+                    <h5 class="text-muted mb-0">Facultad de Ingeniería de Sistemas e Informática</h5>
+                    <h6 class="text-secondary mt-2 fw-bold" style="letter-spacing: 0.5px;">Curso: Seguridad de la
+                        Información</h6>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <div class="container pb-5">
+        <div class="d-flex flex-column flex-md-row justify-content-between align-items-center mb-4">
+            <h3 class="mb-3 mb-md-0 text-secondary"><i class="bi bi-grid-3x3-gap-fill me-2"></i>Gestión de Matriz de
+                Riesgos</h3>
+            <div class="d-flex gap-2">
+                <button class="btn btn-outline-secondary hide-on-export" onclick="toggleDarkMode()"><i
+                        class="bi bi-moon-fill"></i> Modo Oscuro</button>
+                <button class="btn btn-success hide-on-export me-3" onclick="SS.exportPDF()"><i
+                        class="bi bi-file-earmark-pdf me-1"></i>Exportar a PDF</button>
+            </div>
+        </div>
+
+        <div id="export-content" class="pdf-container">
+            <div class="row">
+                <!-- SECCIÓN MATRIZ -->
+                <div class="col-xl-8 col-lg-12 mb-4">
+                    <div class="card h-100">
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                            <span><i class="bi bi-table me-2"></i>Matriz de Evaluación</span>
+                        </div>
+                        <div class="card-body">
+                            <div class="row g-2">
+                                <div class="col-md-3 col-4 d-flex align-items-center justify-content-center bg-info-custom shadow-sm"
+                                    style="border: 1px solid #dee2e6; border-radius: 4px; margin-bottom: 0.25rem;">
+                                    <i class="bi bi-shield-fill-exclamation text-white d-none d-md-block"
+                                        style="font-size: 4rem; opacity: 0.9;"></i>
+                                    <i class="bi bi-shield-fill-exclamation text-white d-block d-md-none"
+                                        style="font-size: 2rem; opacity: 0.9;"></i>
+                                </div>
+                                <div class="col-md-9 col-8">
+                                    <div class="table-responsive">
+                                        <table class="table table-bordered table-sm mb-1 text-center matrix-table">
+                                            <tr>
+                                                <td colspan="5" class="bg-info-custom fw-bold">IMPACTO</td>
+                                            </tr>
+                                            <tr>
+                                                <td class="bg-dark-custom" style="width:20%;">Mínima</td>
+                                                <td class="bg-dark-custom" style="width:20%;">Menor</td>
+                                                <td class="bg-dark-custom" style="width:20%;">Moderada</td>
+                                                <td class="bg-dark-custom" style="width:20%;">Mayor</td>
+                                                <td class="bg-dark-custom" style="width:20%;">Máxima</td>
+                                            </tr>
+                                            <tr>
+                                                <td class="p-1"><input oninput="SS.triggerHeaders(0,0,this.value)"
+                                                        id="imp0" value="0" type="number"
+                                                        class="form-control form-control-sm text-center"></td>
+                                                <td class="p-1"><input oninput="SS.triggerHeaders(0,1,this.value)"
+                                                        id="imp1" value="0" type="number"
+                                                        class="form-control form-control-sm text-center"></td>
+                                                <td class="p-1"><input oninput="SS.triggerHeaders(0,2,this.value)"
+                                                        id="imp2" value="0" type="number"
+                                                        class="form-control form-control-sm text-center"></td>
+                                                <td class="p-1"><input oninput="SS.triggerHeaders(0,3,this.value)"
+                                                        id="imp3" value="0" type="number"
+                                                        class="form-control form-control-sm text-center"></td>
+                                                <td class="p-1"><input oninput="SS.triggerHeaders(0,4,this.value)"
+                                                        id="imp4" value="0" type="number"
+                                                        class="form-control form-control-sm text-center"></td>
+                                            </tr>
+                                        </table>
+                                    </div>
+                                </div>
+
+                                <div class="col-md-3 col-4">
+                                    <div class="table-responsive h-100">
+                                        <table class="table table-bordered table-sm mb-0 h-100">
+                                            <tr>
+                                                <td class="bg-dark-custom align-middle">Muy Alta</td>
+                                                <td class="p-1 align-middle"><input
+                                                        oninput="SS.triggerHeaders(1,0,this.value)" id="prob0" value="0"
+                                                        type="number" class="form-control form-control-sm text-center">
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td class="bg-dark-custom align-middle">Alta</td>
+                                                <td class="p-1 align-middle"><input
+                                                        oninput="SS.triggerHeaders(1,1,this.value)" id="prob1" value="0"
+                                                        type="number" class="form-control form-control-sm text-center">
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td class="bg-dark-custom align-middle">Media</td>
+                                                <td class="p-1 align-middle"><input
+                                                        oninput="SS.triggerHeaders(1,2,this.value)" id="prob2" value="0"
+                                                        type="number" class="form-control form-control-sm text-center">
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td class="bg-dark-custom align-middle">Baja</td>
+                                                <td class="p-1 align-middle"><input
+                                                        oninput="SS.triggerHeaders(1,3,this.value)" id="prob3" value="0"
+                                                        type="number" class="form-control form-control-sm text-center">
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td class="bg-dark-custom align-middle">Muy Baja</td>
+                                                <td class="p-1 align-middle"><input
+                                                        oninput="SS.triggerHeaders(1,4,this.value)" id="prob4" value="0"
+                                                        type="number" class="form-control form-control-sm text-center">
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td class="bg-info-custom text-center fw-bold align-middle" colspan="2"
+                                                    style="height: 30px;">PROBABILIDAD</td>
+                                            </tr>
+                                        </table>
+                                    </div>
+                                </div>
+
+                                <div class="col-md-9 col-8">
+                                    <div class="table-responsive h-100">
+                                        <table id="table-matriz"
+                                            class="table table-bordered table-sm table-center mb-0 h-100 w-100 matrix-table">
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- SECCIÓN ESCALAS -->
+                <div class="col-xl-4 col-lg-12 mb-4">
+                    <div class="card h-100">
+                        <div class="card-header">
+                            <i class="bi bi-sliders me-2"></i>Configuración de Escalas
+                        </div>
+                        <div class="card-body">
+                            <div class="table-responsive">
+                                <table class="table table-sm table-bordered text-center align-middle mb-0">
+                                    <thead class="bg-light">
+                                        <tr>
+                                            <th rowspan="2">Color</th>
+                                            <th rowspan="2">Nivel de Riesgo</th>
+                                            <th colspan="2">Rango</th>
+                                        </tr>
+                                        <tr>
+                                            <th style="width:30%">De</th>
+                                            <th style="width:30%">A</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <td class="bg-success"></td>
+                                            <td class="fw-bold text-success">Riesgo Aceptable</td>
+                                            <td class="p-1"><input id="esc0-0"
+                                                    oninput="SS.triggerEscala(0,0,this.value)" value="0" type="number"
+                                                    class="form-control form-control-sm text-center"></td>
+                                            <td class="p-1"><input id="esc0-1"
+                                                    oninput="SS.triggerEscala(0,1,this.value)" value="0" type="number"
+                                                    class="form-control form-control-sm text-center"></td>
+                                        </tr>
+                                        <tr>
+                                            <td class="bg-yellow"></td>
+                                            <td class="fw-bold" style="color: #d4c800;">Riesgo Tolerable</td>
+                                            <td class="p-1"><input id="esc1-0"
+                                                    oninput="SS.triggerEscala(1,0,this.value)" value="0" type="number"
+                                                    class="form-control form-control-sm text-center"></td>
+                                            <td class="p-1"><input id="esc1-1"
+                                                    oninput="SS.triggerEscala(1,1,this.value)" value="0" type="number"
+                                                    class="form-control form-control-sm text-center"></td>
+                                        </tr>
+                                        <tr>
+                                            <td class="bg-warning"></td>
+                                            <td class="fw-bold text-warning">Riesgo Alto</td>
+                                            <td class="p-1"><input id="esc2-0"
+                                                    oninput="SS.triggerEscala(2,0,this.value)" value="0" type="number"
+                                                    class="form-control form-control-sm text-center"></td>
+                                            <td class="p-1"><input id="esc2-1"
+                                                    oninput="SS.triggerEscala(2,1,this.value)" value="0" type="number"
+                                                    class="form-control form-control-sm text-center"></td>
+                                        </tr>
+                                        <tr>
+                                            <td class="bg-danger"></td>
+                                            <td class="fw-bold text-danger">Riesgo Extremo</td>
+                                            <td class="p-1"><input id="esc3-0"
+                                                    oninput="SS.triggerEscala(3,0,this.value)" value="0" type="number"
+                                                    class="form-control form-control-sm text-center"></td>
+                                            <td class="p-1"><input id="esc3-1"
+                                                    oninput="SS.triggerEscala(3,1,this.value)" value="0" type="number"
+                                                    class="form-control form-control-sm text-center"></td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row">
+                <!-- SECCIÓN EVENTOS -->
+                <div class="html2pdf__page-break"></div>
+                <div class="col-12 mb-4">
+                    <div class="card h-100">
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                            <span><i class="bi bi-list-check me-2"></i>Eventos de Riesgo</span>
+                            <button data-bs-toggle="modal" data-bs-target="#modal_evento"
+                                class="btn btn-primary btn-sm hide-on-export"><i
+                                    class="bi bi-plus-circle me-1"></i>Añadir Evento</button>
+                        </div>
+                        <div class="card-body p-0">
+                            <div class="table-responsive">
+                                <table class="table table-sm table-hover table-eventos mb-0 text-center align-middle">
+                                    <thead>
+                                        <tr>
+                                            <th class="text-start ps-3">Evento</th>
+                                            <th>Probabilidad</th>
+                                            <th>Impacto</th>
+                                            <th>Valor</th>
+                                            <th>Nivel de Riesgo</th>
+                                            <th class="hide-on-export">Quitar</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="table-eventos">
+                                    </tbody>
+                                </table>
+                            </div>
+                            <div id="no-events-msg" class="text-center text-muted p-4 d-none">
+                                <i class="bi bi-inbox fs-2 d-block mb-2"></i>
+                                No hay eventos registrados.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="mt-4 pb-2 text-end"
+                style="color: #adb5bd; font-weight: bold; font-size: 1.1rem; letter-spacing: 3px;">
+                <i class="bi bi-patch-check-fill me-1"></i> FRAME
+            </div>
+        </div>
+
+        <div class="d-flex justify-content-end mt-2">
+            <button class="btn btn-link text-danger hide-on-export p-0" style="text-decoration:none; font-size:0.9rem;"
+                onclick="SS.resetData()"><i class="bi bi-trash"></i> Restaurar Matriz y Limpiar Datos</button>
+        </div>
+
+
+        <div class="modal fade" tabindex="-1" id="modal_evento" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content border-0 shadow">
+                    <div class="modal-header bg-primary text-white" style="background-color: #8e44ad !important;">
+                        <h5 class="modal-title"><i class="bi bi-node-plus-fill me-2"></i>Registrar Nuevo Riesgo</h5>
+                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
+                            aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <form id="form_evento">
+                            <div class="mb-3">
+                                <label for="evento" class="form-label fw-bold">Nombre del evento</label>
+                                <input type="text" class="form-control" id="evento" name="evento"
+                                    placeholder="Ej. Falla en el servidor" autocomplete="off">
+                            </div>
+                            <div class="row">
+                                <div class="col-6 mb-3">
+                                    <label for="probabilidad" class="form-label fw-bold">Probabilidad</label>
+                                    <select class="form-select" id="probabilidad" name="probabilidad">
+                                        <option value="0">Muy alta</option>
+                                        <option value="1">Alta</option>
+                                        <option value="2">Media</option>
+                                        <option value="3">Baja</option>
+                                        <option value="4">Muy baja</option>
+                                    </select>
+                                </div>
+                                <div class="col-6 mb-3">
+                                    <label for="impacto" class="form-label fw-bold">Impacto</label>
+                                    <select class="form-select" id="impacto" name="impacto">
+                                        <option value="0">Mínima</option>
+                                        <option value="1">Menor</option>
+                                        <option value="2">Moderada</option>
+                                        <option value="3">Mayor</option>
+                                        <option value="4">Máxima</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                    <div class="modal-footer bg-light">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                        <button type="button" onclick="SS.createEvent()" class="btn btn-primary">Guardar Evento</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js"
+        crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.min.js"
+        crossorigin="anonymous"></script>
+    <!-- html2pdf para exportar a PDF -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"
+        integrity="sha512-GsLlZN/3F2ErC5ifS5QtgpiJtWd43JWSuIgh7mbzZ8zBps+dvLusV+eNQATqgA/HdeKFVgA5v3S/cIrLF7QnIg=="
+        crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <!-- SweetAlert2 para alertas hermosas -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <script type="text/javascript">
+        let myModal;
+
+        const SS = {
+            impacto: [0, 0, 0, 0, 0],
+            proba: [0, 0, 0, 0, 0],
+            name: {
+                impacto: ['Mínima', 'Menor', 'Moderada', 'Mayor', 'Máxima'],
+                proba: ['Muy alta', 'Alta', 'Media', 'Baja', 'Muy baja']
+            },
+            matriz: [],
+            eventos: [],
+            escalas: [
+                { color: '#198754', nivel: 'Riesgo Aceptable', rango: [0, 0] },
+                { color: '#faf206', nivel: 'Riesgo Tolerable', rango: [0, 0] },
+                { color: '#ffc107', nivel: 'Riesgo Alto', rango: [0, 0] },
+                { color: '#dc3545', nivel: 'Riesgo Extremo', rango: [0, 0] }
+            ],
+
+            init: () => {
+                myModal = new bootstrap.Modal(document.getElementById('modal_evento'), { keyboard: false });
+                SS.loadData();
+                SS.syncUIWithData();
+                SS.buildEmptyMatriz();
+                SS.createMatriz();
+                SS.renderEventos();
+            },
+
+            buildEmptyMatriz: () => {
+                for (let i = 0; i < SS.proba.length; i++) {
+                    SS.matriz[i] = [];
+                    for (let j = 0; j < SS.impacto.length; j++) {
+                        SS.matriz[i][j] = { color: '#e9ecef', value: 0 };
+                    }
+                }
+            },
+
+            syncUIWithData: () => {
+                for (let i = 0; i < SS.impacto.length; i++) {
+                    document.getElementById('imp' + i).value = SS.impacto[i];
+                }
+                for (let i = 0; i < SS.proba.length; i++) {
+                    document.getElementById('prob' + i).value = SS.proba[i];
+                }
+                for (let i = 0; i < SS.escalas.length; i++) {
+                    document.getElementById('esc' + i + '-0').value = SS.escalas[i].rango[0];
+                    document.getElementById('esc' + i + '-1').value = SS.escalas[i].rango[1];
+                }
+            },
+
+            triggerHeaders: (tipo, x, value) => {
+                let val = parseInt(value) || 0;
+                if (tipo == 0) {
+                    SS.impacto[x] = val;
+                } else if (tipo == 1) {
+                    SS.proba[x] = val;
+                }
+                SS.createMatriz();
+                SS.updateEventColors();
+                SS.saveData();
+            },
+
+            createMatriz: () => {
+                for (let i = 0; i < SS.proba.length; i++) {
+                    for (let j = 0; j < SS.impacto.length; j++) {
+                        const value = SS.proba[i] * SS.impacto[j];
+                        let color = '';
+                        let textColor = 'text-dark';
+
+                        SS.escalas.map(res => {
+                            if (res.rango[0] > 0 || res.rango[1] > 0) {
+                                if (value >= res.rango[0] && value <= res.rango[1]) {
+                                    color = res.color;
+                                }
+                            }
+                        });
+
+                        if (color === '#198754' || color === '#dc3545' || color === '#8e44ad') {
+                            textColor = 'text-white';
+                        }
+
+                        SS.matriz[i][j] = { color: color, value: value, textColor: textColor };
+                    }
+                }
+                SS.renderMatriz();
+            },
+
+            renderMatriz: () => {
+                let html = '';
+                for (let i = 0; i < SS.matriz.length; i++) {
+                    html += '<tr>';
+                    for (let j = 0; j < SS.matriz.length; j++) {
+                        let val = SS.matriz[i][j].value;
+                        let displayVal = val > 0 ? val : '-';
+                        let bgStyle = SS.matriz[i][j].color ? `background-color:${SS.matriz[i][j].color};` : '';
+                        let extraClass = SS.matriz[i][j].color ? '' : 'default-cell';
+                        html += `<td class="${SS.matriz[i][j].textColor} fw-bold fs-6 ${extraClass}" style="${bgStyle} width: 20%;">${displayVal}</td>`;
+                    }
+                    html += '</tr>';
+                }
+                document.querySelector('#table-matriz').innerHTML = html;
+            },
+
+            triggerEscala: (i, x, value) => {
+                let val = parseInt(value) || 0;
+                SS.escalas[i].rango[x] = val;
+                SS.createMatriz();
+                SS.updateEventColors();
+                SS.saveData();
+            },
+
+            updateEventColors: () => {
+                SS.eventos = SS.eventos.map(ev => {
+                    let probIndex = SS.name.proba.indexOf(ev.probabilidad);
+                    let impIndex = SS.name.impacto.indexOf(ev.impacto);
+                    if (probIndex > -1 && impIndex > -1) {
+                        ev.valor = SS.matriz[probIndex][impIndex].value;
+                        ev.color = SS.matriz[probIndex][impIndex].color;
+                        let riesgoObj = SS.escalas.find(res => res.color == ev.color);
+                        ev.riesgo = riesgoObj ? riesgoObj.nivel : 'No Definido';
+                    }
+                    return ev;
+                });
+                SS.renderEventos();
+            },
+
+            createEvent: () => {
+                try {
+                    const formObj = Object.fromEntries(new FormData(document.querySelector('#form_evento')).entries());
+                    if (!formObj.evento || formObj.evento.trim().length === 0) throw 'Debe ingresar un nombre de evento';
+
+                    if (SS.proba.indexOf(0) > -1) throw 'Debe ingresar un valor mayor de cero para todas las probabilidades';
+                    if (SS.impacto.indexOf(0) > -1) throw 'Debe ingresar un valor mayor de cero para todos los impactos';
+
+                    let escalasIncompletas = SS.escalas.some(res => res.rango[0] == 0 && res.rango[1] == 0);
+                    if (escalasIncompletas) throw 'Debe completar los rangos de las escalas de riesgo (al menos los máximos de un nivel)';
+
+                    let probVal = parseInt(formObj.probabilidad);
+                    let impVal = parseInt(formObj.impacto);
+
+                    let celda = SS.matriz[probVal][impVal];
+                    let riesgoObj = SS.escalas.find(res => res.color == celda.color);
+                    let nivelRiesgo = riesgoObj ? riesgoObj.nivel : 'No Definido';
+
+                    SS.eventos.push({
+                        evento: formObj.evento.trim(),
+                        probabilidad: SS.name.proba[probVal],
+                        impacto: SS.name.impacto[impVal],
+                        color: celda.color,
+                        valor: celda.value,
+                        riesgo: nivelRiesgo
+                    });
+
+                    SS.saveData();
+                    SS.renderEventos();
+                    document.getElementById('form_evento').reset();
+                    myModal.hide();
+                } catch (error) {
+                    Swal.fire({
+                        icon: 'warning',
+                        title: 'Atención',
+                        text: error,
+                        confirmButtonColor: '#8e44ad'
+                    });
+                }
+            },
+
+            renderEventos: () => {
+                let html = '';
+                if (SS.eventos.length === 0) {
+                    document.getElementById('no-events-msg').classList.remove('d-none');
+                } else {
+                    document.getElementById('no-events-msg').classList.add('d-none');
+                }
+
+                SS.eventos.forEach((res, i) => {
+                    let textColor = (res.color === '#198754' || res.color === '#dc3545' || res.color === '#8e44ad') ? 'text-white' : 'text-dark';
+                    html += `<tr>
+                                <td class="text-start ps-3 fw-bold">${res.evento}</td>
+                                <td>${res.probabilidad}</td>
+                                <td>${res.impacto}</td>
+                                <td class="fw-bold">${res.valor}</td>
+                                <td class="${textColor} fw-bold" style="background-color:${res.color}; border-radius: 4px;">${res.riesgo}</td>
+                                <td class="hide-on-export">
+                                    <button onclick="SS.removeEvento(${i})" class="btn btn-outline-danger btn-sm" title="Quitar">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+                                </td>
+                            </tr>`;
+                });
+                document.querySelector('#table-eventos').innerHTML = html;
+            },
+
+            removeEvento: (i) => {
+                Swal.fire({
+                    title: '¿Eliminar evento?',
+                    text: "Esta acción no se puede deshacer.",
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#d33',
+                    cancelButtonColor: '#6c757d',
+                    confirmButtonText: 'Sí, eliminar',
+                    cancelButtonText: 'Cancelar'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        SS.eventos.splice(i, 1);
+                        SS.saveData();
+                        SS.renderEventos();
+                    }
+                });
+            },
+
+            saveData: () => {
+                const data = {
+                    impacto: SS.impacto,
+                    proba: SS.proba,
+                    escalas: SS.escalas,
+                    eventos: SS.eventos
+                };
+                localStorage.setItem('matrizRiesgoData', JSON.stringify(data));
+            },
+
+            loadData: () => {
+                const saved = localStorage.getItem('matrizRiesgoData');
+                if (saved) {
+                    try {
+                        const parsed = JSON.parse(saved);
+                        if (parsed.impacto) SS.impacto = parsed.impacto;
+                        if (parsed.proba) SS.proba = parsed.proba;
+                        if (parsed.escalas) SS.escalas = parsed.escalas;
+                        if (parsed.eventos) SS.eventos = parsed.eventos;
+                    } catch (e) {
+                        console.error('Error parseando datos:', e);
+                    }
+                }
+            },
+
+            resetData: () => {
+                Swal.fire({
+                    title: '¿Reiniciar matriz?',
+                    text: "Se borrarán todos los datos y eventos de forma permanente.",
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#d33',
+                    cancelButtonColor: '#6c757d',
+                    confirmButtonText: 'Sí, limpiar todo',
+                    cancelButtonText: 'Cancelar'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        localStorage.removeItem('matrizRiesgoData');
+                        location.reload();
+                    }
+                });
+            },
+
+            exportPDF: () => {
+                document.getElementById('export-content').classList.add('exporting');
+
+                const element = document.getElementById('export-content');
+                const opt = {
+                    margin: 0.3,
+                    filename: 'Matriz_de_Riesgos_UNSM.pdf',
+                    image: { type: 'png', quality: 1 }, // PNG para evitar bordes borrosos
+                    html2canvas: { scale: 2, useCORS: true, letterRendering: true, scrollY: 0 }, // Escala 2 para evitar página en blanco (límite de canvas)
+                    pagebreak: { mode: ['css', 'legacy'] }, // Habilita el salto de página automático
+                    jsPDF: { unit: 'in', format: 'a4', orientation: 'landscape' }
+                };
+
+                html2pdf().set(opt).from(element).save().then(() => {
+                    document.getElementById('export-content').classList.remove('exporting');
+                });
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            SS.init();
+
+            // Detectar modo oscuro del sistema operativo
+            if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+                toggleDarkMode();
+            }
+        });
+
+        function toggleDarkMode() {
+            document.body.classList.toggle('dark-mode');
+            const btn = document.querySelector('button[onclick="toggleDarkMode()"]');
+            if (document.body.classList.contains('dark-mode')) {
+                btn.innerHTML = '<i class="bi bi-sun-fill"></i> Modo Claro';
+                btn.classList.remove('btn-outline-secondary');
+                btn.classList.add('btn-outline-light');
+            } else {
+                btn.innerHTML = '<i class="bi bi-moon-fill"></i> Modo Oscuro';
+                btn.classList.remove('btn-outline-light');
+                btn.classList.add('btn-outline-secondary');
+            }
+        }
+    </script>
+</body>
+
+</html>
