@@ -707,7 +707,7 @@ export default function App() {
                           {activeLesson.id === 9 && <SuricataSimulator />}
                           {activeLesson.id === 11 && <SqlInjectionSandbox />}
                           {activeLesson.id === 12 && <CryptoSimulator />}
-                          {activeLesson.id === 13 && <DigitalSignatureLab isTeacher={isTeacher} />}
+                          {activeLesson.id === 13 && <DigitalSignatureLab isTeacher={isTeacher} isGuest={isGuest} />}
                         </div>
                       )}
 

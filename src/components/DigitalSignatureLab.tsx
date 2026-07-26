@@ -12,7 +12,7 @@ interface SignedDocument {
   signature: string;
 }
 
-export default function DigitalSignatureLab({ isTeacher }: { isTeacher?: boolean }) {
+export default function DigitalSignatureLab({ isTeacher, isGuest }: { isTeacher?: boolean; isGuest?: boolean }) {
   // Existing states...
   const [docTitle, setDocTitle] = useState("Informe_Seguridad_Financiera.pdf");
   const [docContent, setDocContent] = useState("Este documento certifica que los servidores de contabilidad de la facultad han sido auditados contra exploits Nmap y se encuentran libres de inyecciones SQL hasta la fecha de hoy.");
@@ -180,7 +180,7 @@ export default function DigitalSignatureLab({ isTeacher }: { isTeacher?: boolean
   return (
     <div className="space-y-6 max-w-7xl mx-auto">
       {/* TABS NAVIGATION & ACTIONS */}
-      {(isTeacher || isPublic) && (
+      {(isTeacher || isGuest || isPublic) && (
         <div className="flex flex-col sm:flex-row sm:items-center justify-between w-full p-2 bg-white dark:bg-zinc-900/50 border border-slate-400 dark:border-zinc-800/80 rounded-xl shadow-sm gap-2 overflow-hidden">
           <div className="relative w-full sm:w-auto overflow-hidden">
             <div 
