@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
-import { Shield, Lock, User, AlertTriangle, ArrowRight, Loader2 } from 'lucide-react';
+import { Shield, Lock, User, AlertTriangle, ArrowRight, Loader2, ArrowLeft } from 'lucide-react';
 import { signInWithEmailAndPassword } from 'firebase/auth';
 import { auth } from '../config/firebase';
 import { motion } from 'motion/react';
 
-export default function LoginScreen({ initialError, onLoginSuccess }: { initialError?: string | null, onLoginSuccess?: () => void }) {
+export default function LoginScreen({ initialError, onLoginSuccess, onBack }: { initialError?: string | null, onLoginSuccess?: () => void, onBack?: () => void }) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
@@ -44,6 +44,16 @@ export default function LoginScreen({ initialError, onLoginSuccess }: { initialE
           {/* Top Line Accent */}
           <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-cyan-500 via-indigo-500 to-purple-500" />
           
+          {onBack && (
+            <button 
+              onClick={onBack}
+              type="button"
+              className="absolute top-6 left-6 text-zinc-500 hover:text-white transition-colors"
+            >
+              <ArrowLeft className="w-5 h-5" />
+            </button>
+          )}
+
           <div className="text-center mb-8">
             <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-br from-cyan-500/20 to-indigo-500/20 text-cyan-400 mb-4 border border-cyan-400 dark:border-cyan-900/40 shadow-[0_0_30px_rgba(6,182,212,0.15)]">
               <Shield className="w-8 h-8" />

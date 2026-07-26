@@ -17,6 +17,7 @@ import CheckpointQuiz from "./components/CheckpointQuiz";
 import GlossaryModal from "./components/GlossaryModal";
 import { SetupGuideModal } from "./components/SetupGuideModal";
 import LoginScreen from "./components/LoginScreen";
+import LandingPage from "./components/LandingPage";
 import TeacherAdminPanel from "./components/TeacherAdminPanel";
 import WelcomeScreen from "./components/WelcomeScreen";
 import FrameWatermark from "./components/FrameWatermark";
@@ -58,6 +59,8 @@ export default function App() {
     console.log("%cAula Virtual | Sistema de Laboratorios", "font-size: 14px; color: #a1a1aa; font-style: italic; padding-left: 10px;");
     console.log("%cEl código fuente, arquitectura y diseño de este software (Manual Interactivo de Seguridad) han sido desarrollados íntegramente por Marco A. Pacheco A. (FRAME).", "font-size: 12px; color: #71717a; padding-left: 10px;");
   }, []);
+
+  const [showLanding, setShowLanding] = useState(true);
 
   // Authentication State
   const [user, setUser] = useState<User | null>(null);
@@ -348,9 +351,14 @@ export default function App() {
   }
 
   if (!user) {
+    if (showLanding) {
+      return <LandingPage onLoginClick={() => setShowLanding(false)} />;
+    }
+
     return (
       <LoginScreen
         initialError={sessionError}
+        onBack={() => setShowLanding(true)}
         onLoginSuccess={() => {
           setSelectedClassId(0);
           localStorage.setItem("manual_selectedClassId", "0");
