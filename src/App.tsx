@@ -50,7 +50,9 @@ import {
   Loader2,
   Settings,
   EyeOff,
-  Wrench
+  Wrench,
+  Lock,
+  ArrowRight
 } from "lucide-react";
 
 export default function App() {
