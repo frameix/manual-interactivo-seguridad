@@ -59,7 +59,7 @@ export default function LoginScreen({ initialError, onLoginSuccess, onBack }: { 
               <Shield className="w-8 h-8" />
             </div>
             <h1 className="text-2xl font-bold text-white tracking-tight mb-2">Portal de Seguridad</h1>
-            <p className="text-sm text-zinc-400">Autenticación requerida para acceder al manual interactivo de la UNSM</p>
+            <p className="text-sm text-zinc-400">Autenticación requerida para acceder al Manual Interactivo</p>
           </div>
 
           <form onSubmit={handleLogin} className="space-y-5">
@@ -122,7 +122,7 @@ export default function LoginScreen({ initialError, onLoginSuccess, onBack }: { 
 
           <div className="mt-8 text-center border-t border-white/5 pt-6">
             <p className="text-xs text-zinc-500">
-              Uso exclusivo para estudiantes y docentes del curso de Ciberseguridad.
+              Desarrollado por Marco A. Pacheco (FRAME).
             </p>
           </div>
         </div>

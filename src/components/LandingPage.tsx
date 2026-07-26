@@ -23,7 +23,7 @@ export default function LandingPage({ onLoginClick }: LandingPageProps) {
             <div className="bg-indigo-600 p-2 rounded-lg">
               <ShieldCheck className="h-6 w-6 text-white" />
             </div>
-            <span className="font-black text-xl tracking-tight text-slate-800 dark:text-white">UNSM<span className="text-indigo-600 dark:text-indigo-500">Sec</span></span>
+            <span className="font-black text-xl tracking-tight text-slate-800 dark:text-white">Frame<span className="text-indigo-600 dark:text-indigo-500">Sec</span></span>
           </div>
           <button 
             onClick={onLoginClick}
@@ -43,7 +43,7 @@ export default function LandingPage({ onLoginClick }: LandingPageProps) {
               <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-indigo-400 opacity-75"></span>
               <span className="relative inline-flex rounded-full h-2 w-2 bg-indigo-500"></span>
             </span>
-            Plataforma Académica Oficial
+            Plataforma de Ciberseguridad
           </div>
 
           <h1 className="text-5xl md:text-7xl font-black tracking-tight mb-8 leading-[1.1] max-w-4xl text-slate-900 dark:text-white">
@@ -111,7 +111,7 @@ export default function LandingPage({ onLoginClick }: LandingPageProps) {
 
       {/* Minimal Footer */}
       <footer className="border-t border-slate-200 dark:border-zinc-800/50 py-8 relative z-10 text-center text-slate-500 dark:text-zinc-500 text-sm">
-        <p>© {new Date().getFullYear()} Plataforma Universitaria de Auditoría de Sistemas.</p>
+        <p>© {new Date().getFullYear()} Creado por Marco A. Pacheco (FRAME).</p>
       </footer>
     </div>
   );
