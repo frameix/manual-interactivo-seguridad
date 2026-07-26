@@ -1,6 +1,6 @@
 <div align="center">
 
-  <h1>Manual Interactivo de Seguridad de la Información</h1>
+  <h1>Manual Interactivo de Ciberseguridad</h1>
   <p><em>Plataforma educativa tipo Single Page Application (SPA) para Ciberseguridad, Auditoría y Hacking Ético.</em></p>
 </div>
 
