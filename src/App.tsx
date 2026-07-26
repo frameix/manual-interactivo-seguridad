@@ -21,6 +21,7 @@ import LandingPage from "./components/LandingPage";
 import TeacherAdminPanel from "./components/TeacherAdminPanel";
 import WelcomeScreen from "./components/WelcomeScreen";
 import FrameWatermark from "./components/FrameWatermark";
+import PaymentModal from "./components/PaymentModal";
 import { auth, db } from "./config/firebase";
 import { onAuthStateChanged, signOut, User } from "firebase/auth";
 import { ref, set, onValue, off, DatabaseReference } from "firebase/database";
@@ -127,12 +128,13 @@ export default function App() {
   const [isGlossaryOpen, setIsGlossaryOpen] = useState(false);
   const [isGuideOpen, setIsGuideOpen] = useState(false);
   const [isAdminPanelOpen, setIsAdminPanelOpen] = useState(false);
+  const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
   const [classVisibility, setClassVisibility] = useState<Record<number, boolean>>({});
   const [isVisibilityLoaded, setIsVisibilityLoaded] = useState(false);
 
   // Prevent body scroll when any modal/floating window is open
   useEffect(() => {
-    if (isGlossaryOpen || isGuideOpen || isAdminPanelOpen || isMobileSidebarOpen) {
+    if (isGlossaryOpen || isGuideOpen || isAdminPanelOpen || isPaymentModalOpen || isMobileSidebarOpen) {
       document.body.style.overflow = 'hidden';
     } else {
       document.body.style.overflow = 'unset';
@@ -140,7 +142,7 @@ export default function App() {
     return () => {
       document.body.style.overflow = 'unset';
     };
-  }, [isGlossaryOpen, isGuideOpen, isAdminPanelOpen, isMobileSidebarOpen]);
+  }, [isGlossaryOpen, isGuideOpen, isAdminPanelOpen, isPaymentModalOpen, isMobileSidebarOpen]);
 
   // Auto-scroll exclusivo para la barra móvil (solo existe en el DOM cuando se abre)
   useEffect(() => {
@@ -201,15 +203,26 @@ export default function App() {
   }, []);
 
   const [isPremium, setIsPremium] = useState(false);
+  const [paymentStatus, setPaymentStatus] = useState<string | null>(null);
 
-  // Load Premium Status
+  // Load Premium Status and Payment Request Status
   useEffect(() => {
     if (user) {
       const premiumRef = ref(db, `users/${user.uid}/isPremium`);
-      const unsub = onValue(premiumRef, (snap) => setIsPremium(!!snap.val()));
-      return () => unsub();
+      const unsubPremium = onValue(premiumRef, (snap) => setIsPremium(!!snap.val()));
+
+      const paymentRef = ref(db, `paymentRequests/${user.uid}/status`);
+      const unsubPayment = onValue(paymentRef, (snap) => {
+        setPaymentStatus(snap.val() || null);
+      });
+
+      return () => {
+        unsubPremium();
+        unsubPayment();
+      };
     } else {
       setIsPremium(false);
+      setPaymentStatus(null);
     }
   }, [user]);
 
@@ -747,10 +760,39 @@ export default function App() {
                         <p className="text-slate-600 dark:text-zinc-400 max-w-lg mb-8 leading-relaxed mx-auto">
                           Has llegado al límite de la prueba gratuita. Accede a los simuladores de Hacking, Metasploit, generadores de firmas y obtén tu progreso completo por un pago único.
                         </p>
-                        <button className="flex items-center justify-center gap-2 bg-gradient-to-r from-indigo-600 to-emerald-500 hover:from-indigo-500 hover:to-emerald-400 text-white px-8 py-4 rounded-full font-bold text-lg shadow-[0_0_40px_-10px_rgba(79,70,229,0.5)] transition-all mx-auto">
-                          Adquirir Versión Premium
-                          <ArrowRight className="h-5 w-5" />
-                        </button>
+                        
+                        {paymentStatus === 'pending' ? (
+                          <div className="px-6 py-4 bg-amber-50 dark:bg-amber-500/10 border border-amber-200 dark:border-amber-500/20 rounded-xl max-w-sm mx-auto">
+                            <p className="text-amber-800 dark:text-amber-400 font-bold flex items-center justify-center gap-2">
+                              <Loader2 className="w-4 h-4 animate-spin" />
+                              Validando Pago
+                            </p>
+                            <p className="text-xs text-amber-700/80 dark:text-amber-400/80 mt-1">
+                              Estamos revisando tu solicitud. Tu cuenta se activará muy pronto.
+                            </p>
+                          </div>
+                        ) : paymentStatus === 'rejected' ? (
+                          <div className="px-6 py-4 bg-red-50 dark:bg-red-500/10 border border-red-200 dark:border-red-500/20 rounded-xl max-w-sm mx-auto flex flex-col items-center">
+                            <p className="text-red-800 dark:text-red-400 font-bold mb-2">Pago Rechazado</p>
+                            <p className="text-xs text-red-700/80 dark:text-red-400/80 mb-4">
+                              El número de operación que enviaste no es válido o no se pudo confirmar el abono.
+                            </p>
+                            <button 
+                              onClick={() => setIsPaymentModalOpen(true)}
+                              className="text-xs font-bold bg-white dark:bg-red-950 px-4 py-2 rounded-lg border border-red-200 dark:border-red-900 shadow-sm hover:bg-neutral-50 dark:hover:bg-red-900/50 transition-colors"
+                            >
+                              Intentar nuevamente
+                            </button>
+                          </div>
+                        ) : (
+                          <button 
+                            onClick={() => setIsPaymentModalOpen(true)}
+                            className="flex items-center justify-center gap-2 bg-gradient-to-r from-indigo-600 to-emerald-500 hover:from-indigo-500 hover:to-emerald-400 text-white px-8 py-4 rounded-full font-bold text-lg shadow-[0_0_40px_-10px_rgba(79,70,229,0.5)] transition-all mx-auto"
+                          >
+                            Adquirir Versión Premium
+                            <ArrowRight className="h-5 w-5" />
+                          </button>
+                        )}
                       </div>
                     ) : (
                       <div className="space-y-6 mt-6">
@@ -1209,7 +1251,17 @@ export default function App() {
       </div>
       <GlossaryModal isOpen={isGlossaryOpen} onClose={() => setIsGlossaryOpen(false)} />
       <SetupGuideModal isOpen={isGuideOpen} onClose={() => setIsGuideOpen(false)} darkMode={darkMode} />
-      <TeacherAdminPanel isOpen={isAdminPanelOpen} onClose={() => setIsAdminPanelOpen(false)} />
+      {isTeacher && isAdminPanelOpen && (
+        <TeacherAdminPanel onClose={() => setIsAdminPanelOpen(false)} />
+      )}
+
+      {isPaymentModalOpen && user && (
+        <PaymentModal 
+          onClose={() => setIsPaymentModalOpen(false)} 
+          uid={user.uid} 
+          email={user.email} 
+        />
+      )}
     </div>
   );
 }
