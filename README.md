@@ -1,5 +1,5 @@
 <div align="center">
-  <img src="https://i.imgur.com/uR2Zf9D.png" alt="Logo de Seguridad" width="150" />
+
   <h1>Manual Interactivo de Seguridad de la Información</h1>
   <p><em>Plataforma educativa tipo Single Page Application (SPA) para Ciberseguridad, Auditoría y Hacking Ético.</em></p>
 </div>
