@@ -59,13 +59,16 @@ export default function LandingPage({ onLoginClick }: LandingPageProps) {
               onClick={onLoginClick}
               className="group flex items-center justify-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white px-8 py-4 rounded-full font-bold text-lg transition-all shadow-[0_0_40px_-10px_rgba(79,70,229,0.5)] hover:shadow-[0_0_60px_-15px_rgba(79,70,229,0.7)]"
             >
-              Comenzar Ahora
+              Crear Cuenta Gratis
               <ArrowRight className="h-5 w-5 group-hover:translate-x-1 transition-transform" />
             </button>
             <a href="#features" className="flex items-center justify-center gap-2 bg-white dark:bg-zinc-900 hover:bg-slate-50 dark:hover:bg-zinc-800 text-slate-800 dark:text-white px-8 py-4 rounded-full font-bold text-lg border border-slate-200 dark:border-zinc-700 transition-all">
               Ver Características
             </a>
           </div>
+          <p className="mt-6 text-sm text-slate-500 dark:text-zinc-500 font-medium">
+            ✨ Incluye prueba gratis de las primeras 3 sesiones completas. No requiere tarjeta.
+          </p>
         </div>
 
         {/* Features Section */}
