@@ -381,7 +381,7 @@ export default function App() {
                 >
                   <BookOpen className="h-5 w-5 text-cyan-500 shrink-0" />
                   <div>
-                    <h1 className="font-serif italic font-semibold text-sm tracking-wide text-neutral-950 dark:text-white">Manual de Seguridad</h1>
+                    <h1 className="font-serif italic font-semibold text-sm tracking-wide text-neutral-950 dark:text-white">Manual de Ciberseguridad</h1>
                     <p className="text-[9px] text-neutral-700 dark:text-zinc-500 font-bold tracking-[0.15em] uppercase">Curso Interactivo Demostrativo</p>
                   </div>
                 </button>
@@ -533,7 +533,7 @@ export default function App() {
                     </div>
                     <div className="lg:hidden flex flex-wrap items-center gap-2">
                       <BookOpen className="h-4 w-4 text-cyan-500" />
-                      <span className="font-serif italic text-xs tracking-wide text-neutral-950 dark:text-white">Manual de Seguridad</span>
+                      <span className="font-serif italic text-xs tracking-wide text-neutral-950 dark:text-white">Manual de Ciberseguridad</span>
                     </div>
                   </div>
 
@@ -979,7 +979,7 @@ export default function App() {
                 <footer className="border-t border-neutral-400 dark:border-zinc-900/80 py-10 px-6 lg:px-8 text-center bg-white dark:bg-[#08080a] text-xs text-neutral-700 dark:text-zinc-500 font-medium mt-auto">
                   <div className="max-w-5xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
                     <div>
-                      © 2026 Manual Interactivo de Seguridad de la Información. Todos los derechos reservados.
+                      © 2026 Manual Interactivo de Ciberseguridad. Todos los derechos reservados.
                     </div>
                     <div className="flex flex-wrap items-center gap-2.5 justify-center">
                       <span className="px-3 py-1 bg-indigo-50/50 dark:bg-indigo-900/20 text-indigo-600 dark:text-indigo-400 font-bold rounded-full border border-indigo-400 dark:border-indigo-800/50 text-[10px] uppercase font-mono tracking-wider">Marco A. Pacheco A.</span>
@@ -1014,7 +1014,7 @@ export default function App() {
                             className="flex flex-wrap items-center gap-2 text-left cursor-pointer hover:opacity-80 transition-opacity"
                           >
                             <BookOpen className="h-5 w-5 text-cyan-500" />
-                            <span className="font-serif italic text-sm text-neutral-950 dark:text-white">Manual de Seguridad</span>
+                            <span className="font-serif italic text-sm text-neutral-950 dark:text-white">Manual de Ciberseguridad</span>
                           </button>
                           <button
                             onClick={() => setIsMobileSidebarOpen(false)}

@@ -38,7 +38,7 @@ export default function WelcomeScreen({ onStart }: { onStart: () => void }) {
           <h1 className="text-4xl md:text-5xl font-serif italic font-semibold text-slate-900 dark:text-white leading-tight">
             Manual Interactivo de <br className="hidden md:block" />
             <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-600 to-indigo-600 dark:from-cyan-400 dark:to-indigo-400">
-              Seguridad de la Información
+              Ciberseguridad
             </span>
           </h1>
           <p className="text-sm md:text-base text-slate-700 dark:text-zinc-400 max-w-xl mx-auto leading-relaxed">

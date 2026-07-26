@@ -112,7 +112,7 @@ export default function LoginScreen({ initialError, onLoginSuccess }: { initialE
 
           <div className="mt-8 text-center border-t border-white/5 pt-6">
             <p className="text-xs text-zinc-500">
-              Uso exclusivo para estudiantes y docentes del curso de Seguridad de la Información.
+              Uso exclusivo para estudiantes y docentes del curso de Ciberseguridad.
             </p>
           </div>
         </div>

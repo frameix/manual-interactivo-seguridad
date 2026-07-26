@@ -1,5 +1,5 @@
 {
-  "name": "Manual de Seguridad de la Información",
+  "name": "Manual de Ciberseguridad",
   "description": "Un manual interactivo y moderno para el curso de Seguridad de la Información, con laboratorios y simuladores tácticos de cada clase para un aprendizaje práctico.",
   "requestFramePermissions": [],
   "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
