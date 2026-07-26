@@ -279,10 +279,11 @@ export default function App() {
   const activeLesson = lessonsData.find((l) => l.id === selectedClassId) || lessonsData[1];
 
   const isTeacher = user?.email === 'profesor@unsm.edu.pe';
+  const isGuest = user?.email === 'invitado@unsm.edu.pe';
 
   // Filter lessons based on visibility for students
   const visibleLessons = lessonsData.filter(l => {
-    if (isTeacher) return true;
+    if (isTeacher || isGuest) return true;
     return classVisibility[l.id] === true;
   });
 
@@ -296,7 +297,7 @@ export default function App() {
 
   // Kick student out of hidden class
   useEffect(() => {
-    if (!isTeacher && Object.keys(classVisibility).length > 0) {
+    if (!isTeacher && !isGuest && Object.keys(classVisibility).length > 0) {
       if (classVisibility[selectedClassId] !== true && selectedClassId !== 0) {
         const firstVisible = lessonsData.find(l => classVisibility[l.id] === true);
         if (firstVisible) {
@@ -304,7 +305,7 @@ export default function App() {
         }
       }
     }
-  }, [classVisibility, isTeacher, selectedClassId]);
+  }, [classVisibility, isTeacher, isGuest, selectedClassId]);
 
   // Completion percentage
   const totalActives = visibleLessons.length;

@@ -31,6 +31,10 @@ Aquí tienes registradas las cuentas de prueba configuradas en Firebase para des
   - **Usuario:** `alumnos@unsm.edu.pe`
   - **Contraseña:** `[Configurada en Firebase Authentication]`
 
+- **Cuenta de Invitado/Observador (Tiene todo el temario desbloqueado, pero sin panel admin):**
+  - **Usuario:** `invitado@unsm.edu.pe`
+  - **Contraseña:** `[Configurada en Firebase Authentication]`
+
 ## ⌨️ Leyenda de Instrucciones del Prontuario
 
 El sistema renderiza los comandos en la pestaña "Prontuario" dependiendo de prefijos específicos en el campo `description`. Aquí la leyenda de su clasificación visual:
