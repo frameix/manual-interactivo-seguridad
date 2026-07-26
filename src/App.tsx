@@ -61,6 +61,7 @@ export default function App() {
   }, []);
 
   const [showLanding, setShowLanding] = useState(true);
+  const [initialAuthMode, setInitialAuthMode] = useState<'login' | 'register'>('login');
 
   // Authentication State
   const [user, setUser] = useState<User | null>(null);
@@ -197,6 +198,19 @@ export default function App() {
     };
   }, []);
 
+  const [isPremium, setIsPremium] = useState(false);
+
+  // Load Premium Status
+  useEffect(() => {
+    if (user) {
+      const premiumRef = ref(db, `users/${user.uid}/isPremium`);
+      const unsub = onValue(premiumRef, (snap) => setIsPremium(!!snap.val()));
+      return () => unsub();
+    } else {
+      setIsPremium(false);
+    }
+  }, [user]);
+
   // Load initial completion state from local storage (Alumnos) or Firebase (Profesor)
   useEffect(() => {
     if (authLoading) return;
@@ -283,10 +297,18 @@ export default function App() {
 
   const isTeacher = user?.email === 'profesor@unsm.edu.pe';
   const isGuest = user?.email === 'invitado@unsm.edu.pe';
+  const isUniversityStudent = user?.email?.endsWith('@unsm.edu.pe') && !isTeacher && !isGuest;
+  const isSaaSUser = user && !isTeacher && !isGuest && !isUniversityStudent;
 
   // Filter lessons based on visibility for students
   const visibleLessons = lessonsData.filter(l => {
     if (isTeacher || isGuest) return true;
+    if (isSaaSUser) {
+      if (isPremium) return true;
+      // Freemium logic: sees 1, 2, 3 fully. Sees 4 as paywall. Cannot see > 4.
+      return l.id <= 4;
+    }
+    // University student logic
     return classVisibility[l.id] === true;
   });
 
@@ -300,15 +322,21 @@ export default function App() {
 
   // Kick student out of hidden class
   useEffect(() => {
-    if (!isTeacher && !isGuest && Object.keys(classVisibility).length > 0) {
-      if (classVisibility[selectedClassId] !== true && selectedClassId !== 0) {
-        const firstVisible = lessonsData.find(l => classVisibility[l.id] === true);
-        if (firstVisible) {
-          setSelectedClassId(firstVisible.id);
+    if (user && !isTeacher && !isGuest && isVisibilityLoaded) {
+      if (isSaaSUser) {
+        if (!isPremium && selectedClassId > 4 && selectedClassId !== 0) {
+          setSelectedClassId(1);
+        }
+      } else {
+        if (classVisibility[selectedClassId] !== true && selectedClassId !== 0) {
+          const firstVisible = lessonsData.find(l => classVisibility[l.id] === true);
+          if (firstVisible) {
+            setSelectedClassId(firstVisible.id);
+          }
         }
       }
     }
-  }, [classVisibility, isTeacher, isGuest, selectedClassId]);
+  }, [classVisibility, isTeacher, isGuest, selectedClassId, isSaaSUser, isPremium, isVisibilityLoaded, user]);
 
   // Completion percentage
   const totalActives = visibleLessons.length;
@@ -352,12 +380,16 @@ export default function App() {
 
   if (!user) {
     if (showLanding) {
-      return <LandingPage onLoginClick={() => setShowLanding(false)} />;
+      return <LandingPage 
+        onLoginClick={() => { setInitialAuthMode('login'); setShowLanding(false); }} 
+        onRegisterClick={() => { setInitialAuthMode('register'); setShowLanding(false); }}
+      />;
     }
 
     return (
       <LoginScreen
         initialError={sessionError}
+        initialMode={initialAuthMode}
         onBack={() => setShowLanding(true)}
         onLoginSuccess={() => {
           setSelectedClassId(0);
@@ -701,25 +733,42 @@ export default function App() {
                     </div>
 
                     {/* Dynamic rendering depending on selected Tab */}
-                    <div className="space-y-6">
-
-                      {/* Tab Case 1: Interactive Laboratorio/Simulador */}
-                      {activeTab === "lab" && !activeLesson.isIgnored && (
-                        <div className="space-y-6">
-                          {activeLesson.id === 2 && <AircrackSimulator />}
-                          {activeLesson.id === 3 && <RiskMatrixCalculator />}
-                          {activeLesson.id === 4 && <DictionaryGenerator />}
-                          {activeLesson.id === 6 && <PhishingSimulator />}
-                          {activeLesson.id === 7 && <MetasploitSimulator />}
-                          {activeLesson.id === 8 && <NetworkSecurityLab />}
-                          {activeLesson.id === 9 && <SuricataSimulator />}
-                          {activeLesson.id === 11 && <SqlInjectionSandbox />}
-                          {activeLesson.id === 12 && <CryptoSimulator />}
-                          {activeLesson.id === 13 && <DigitalSignatureLab isTeacher={isTeacher} isGuest={isGuest} />}
+                    {isSaaSUser && !isPremium && activeLesson.id === 4 ? (
+                      <div className="relative overflow-hidden rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-white/50 dark:bg-zinc-900/50 p-8 sm:p-12 backdrop-blur-sm text-center flex flex-col items-center justify-center min-h-[400px] mt-6">
+                        <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-[0.03] dark:opacity-[0.05]" />
+                        <div className="bg-indigo-100 dark:bg-indigo-500/10 p-4 rounded-2xl mb-6 shadow-sm border border-indigo-200 dark:border-indigo-500/20">
+                          <Lock className="w-12 h-12 text-indigo-600 dark:text-indigo-400" />
                         </div>
-                      )}
+                        <h2 className="text-2xl sm:text-3xl font-black tracking-tight text-slate-900 dark:text-white mb-4">
+                          Desbloquea el Manual Completo
+                        </h2>
+                        <p className="text-slate-600 dark:text-zinc-400 max-w-lg mb-8 leading-relaxed mx-auto">
+                          Has llegado al límite de la prueba gratuita. Accede a los simuladores de Hacking, Metasploit, generadores de firmas y obtén tu progreso completo por un pago único.
+                        </p>
+                        <button className="flex items-center justify-center gap-2 bg-gradient-to-r from-indigo-600 to-emerald-500 hover:from-indigo-500 hover:to-emerald-400 text-white px-8 py-4 rounded-full font-bold text-lg shadow-[0_0_40px_-10px_rgba(79,70,229,0.5)] transition-all mx-auto">
+                          Adquirir Versión Premium
+                          <ArrowRight className="h-5 w-5" />
+                        </button>
+                      </div>
+                    ) : (
+                      <div className="space-y-6 mt-6">
+                        {/* Tab Case 1: Interactive Laboratorio/Simulador */}
+                        {activeTab === "lab" && !activeLesson.isIgnored && (
+                          <div className="space-y-6">
+                            {activeLesson.id === 2 && <AircrackSimulator />}
+                            {activeLesson.id === 3 && <RiskMatrixCalculator />}
+                            {activeLesson.id === 4 && <DictionaryGenerator />}
+                            {activeLesson.id === 6 && <PhishingSimulator />}
+                            {activeLesson.id === 7 && <MetasploitSimulator />}
+                            {activeLesson.id === 8 && <NetworkSecurityLab />}
+                            {activeLesson.id === 9 && <SuricataSimulator />}
+                            {activeLesson.id === 11 && <SqlInjectionSandbox />}
+                            {activeLesson.id === 12 && <CryptoSimulator />}
+                            {activeLesson.id === 13 && <DigitalSignatureLab isTeacher={isTeacher} isGuest={isGuest} />}
+                          </div>
+                        )}
 
-                      {/* Tab Case 2: Apuntes y Teoría */}
+                        {/* Tab Case 2: Apuntes y Teoría */}
                       {activeTab === "theory" && (
                         <div className="grid grid-cols-1 md:grid-cols-12 gap-6 items-start">
 

@@ -1,27 +1,38 @@
 import React, { useState } from 'react';
 import { Shield, Lock, User, AlertTriangle, ArrowRight, Loader2, ArrowLeft } from 'lucide-react';
-import { signInWithEmailAndPassword } from 'firebase/auth';
+import { signInWithEmailAndPassword, createUserWithEmailAndPassword } from 'firebase/auth';
 import { auth } from '../config/firebase';
 import { motion } from 'motion/react';
 
-export default function LoginScreen({ initialError, onLoginSuccess, onBack }: { initialError?: string | null, onLoginSuccess?: () => void, onBack?: () => void }) {
+export default function LoginScreen({ initialError, onLoginSuccess, onBack, initialMode = 'login' }: { initialError?: string | null, onLoginSuccess?: () => void, onBack?: () => void, initialMode?: 'login' | 'register' }) {
+  const [mode, setMode] = useState<'login' | 'register'>(initialMode);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(initialError || null);
 
-  const handleLogin = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     setError(null);
     try {
-      await signInWithEmailAndPassword(auth, email, password);
+      if (mode === 'login') {
+        await signInWithEmailAndPassword(auth, email, password);
+      } else {
+        await createUserWithEmailAndPassword(auth, email, password);
+      }
       if (onLoginSuccess) {
         onLoginSuccess();
       }
     } catch (err: any) {
       console.error(err);
-      setError('Credenciales inválidas o acceso denegado.');
+      if (err.code === 'auth/email-already-in-use') {
+        setError('Este correo ya está registrado.');
+      } else if (err.code === 'auth/weak-password') {
+        setError('La contraseña debe tener al menos 6 caracteres.');
+      } else {
+        setError(mode === 'login' ? 'Credenciales inválidas o acceso denegado.' : 'Ocurrió un error al crear la cuenta.');
+      }
     } finally {
       setLoading(false);
     }
@@ -62,7 +73,7 @@ export default function LoginScreen({ initialError, onLoginSuccess, onBack }: { 
             <p className="text-sm text-zinc-400">Autenticación requerida para acceder al Manual Interactivo</p>
           </div>
 
-          <form onSubmit={handleLogin} className="space-y-5">
+          <form onSubmit={handleSubmit} className="space-y-5">
             {error && (
               <motion.div 
                 initial={{ opacity: 0, height: 0 }} 
@@ -113,11 +124,26 @@ export default function LoginScreen({ initialError, onLoginSuccess, onBack }: { 
                 <Loader2 className="w-5 h-5 animate-spin" />
               ) : (
                 <>
-                  <span>Ingresar al Sistema</span>
+                  <span>{mode === 'login' ? 'Ingresar al Sistema' : 'Crear mi cuenta'}</span>
                   <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
                 </>
               )}
             </button>
+            
+            <div className="text-center mt-4">
+              <button
+                type="button"
+                onClick={() => {
+                  setMode(mode === 'login' ? 'register' : 'login');
+                  setError(null);
+                }}
+                className="text-sm text-cyan-400 hover:text-cyan-300 transition-colors bg-transparent border-none"
+              >
+                {mode === 'login' 
+                  ? '¿No tienes cuenta? Regístrate gratis' 
+                  : '¿Ya tienes cuenta? Inicia sesión'}
+              </button>
+            </div>
           </form>
 
           <div className="mt-8 text-center border-t border-white/5 pt-6">

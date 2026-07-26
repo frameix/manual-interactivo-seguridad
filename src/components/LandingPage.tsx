@@ -3,9 +3,10 @@ import { ShieldCheck, TerminalSquare, Cpu, ArrowRight, Lock, Key, Target } from 
 
 interface LandingPageProps {
   onLoginClick: () => void;
+  onRegisterClick: () => void;
 }
 
-export default function LandingPage({ onLoginClick }: LandingPageProps) {
+export default function LandingPage({ onLoginClick, onRegisterClick }: LandingPageProps) {
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-zinc-950 text-slate-900 dark:text-zinc-100 font-sans overflow-x-hidden selection:bg-indigo-500/30">
       
@@ -56,7 +57,7 @@ export default function LandingPage({ onLoginClick }: LandingPageProps) {
 
           <div className="flex flex-col sm:flex-row gap-4 w-full sm:w-auto">
             <button 
-              onClick={onLoginClick}
+              onClick={onRegisterClick}
               className="group flex items-center justify-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white px-8 py-4 rounded-full font-bold text-lg transition-all shadow-[0_0_40px_-10px_rgba(79,70,229,0.5)] hover:shadow-[0_0_60px_-15px_rgba(79,70,229,0.7)]"
             >
               Crear Cuenta Gratis
