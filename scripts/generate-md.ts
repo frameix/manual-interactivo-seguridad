@@ -1,6 +1,6 @@
 import fs from 'fs';
 import path from 'path';
-import { lessonsData } from './src/data/lessons';
+import { lessonsData } from '../src/data/lessons';
 
 const outputDir = 'd:\\AUDITORIA\\Manual\\Manual_Fisico';
 if (!fs.existsSync(outputDir)) {

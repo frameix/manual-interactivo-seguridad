@@ -718,7 +718,6 @@ export default function App() {
                           <div className="md:col-span-8 space-y-6">
                             {(activeLesson.id === 5 || activeLesson.id === 10) ? (
                               <CheckpointQuiz
-                                key={activeLesson.id}
                                 quizId={activeLesson.id as 5 | 10}
                                 isTeacher={isTeacher}
                                 onComplete={() => {
