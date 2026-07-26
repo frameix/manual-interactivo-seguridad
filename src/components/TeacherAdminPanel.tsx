@@ -581,7 +581,6 @@ export default function TeacherAdminPanel({ isOpen, onClose }: TeacherAdminPanel
                 )}
               </motion.div>
             )}
-            )}
 
             {activeTab === 'saas' && (
               <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-6">
