@@ -671,7 +671,7 @@ export default function App() {
                               : "border-transparent text-neutral-700 hover:text-neutral-700 dark:text-zinc-500 dark:hover:text-zinc-300"
                             }`}
                         >
-                          💻 Comandos Base
+                          💻 Prontuario
                         </button>
                         {activeLesson.faqs && (
                           <button
