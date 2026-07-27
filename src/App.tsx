@@ -907,7 +907,7 @@ export default function App() {
                     {/* Paywall overlay if Freemium trying to access class > 3 */}
                     {isSaaSUser && !effectiveIsPremium && activeLesson.id > 3 && (activeLesson.id !== 13) ? (
                       <div className="relative overflow-hidden rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-white/50 dark:bg-zinc-900/50 p-8 sm:p-12 backdrop-blur-sm text-center flex flex-col items-center justify-center min-h-[400px] mt-6">
-                        <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-[0.03] dark:opacity-[0.05]" />
+                        <div className="absolute inset-0 pointer-events-none bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-[0.03] dark:opacity-[0.05]" />
                         <div className="bg-indigo-100 dark:bg-indigo-500/10 p-4 rounded-2xl mb-6 shadow-sm border border-indigo-200 dark:border-indigo-500/20">
                           <Lock className="w-12 h-12 text-indigo-600 dark:text-indigo-400" />
                         </div>
@@ -944,7 +944,7 @@ export default function App() {
                         ) : (
                           <button 
                             onClick={() => setIsPaymentModalOpen(true)}
-                            className="flex items-center justify-center gap-2 bg-gradient-to-r from-indigo-600 to-emerald-500 hover:from-indigo-500 hover:to-emerald-400 text-white px-8 py-4 rounded-full font-bold text-lg shadow-[0_0_40px_-10px_rgba(79,70,229,0.5)] transition-all mx-auto"
+                            className="relative z-10 cursor-pointer flex items-center justify-center gap-2 bg-gradient-to-r from-indigo-600 to-emerald-500 hover:from-indigo-500 hover:to-emerald-400 text-white px-8 py-4 rounded-full font-bold text-lg shadow-[0_0_40px_-10px_rgba(79,70,229,0.5)] transition-all mx-auto"
                           >
                             Adquirir Versión Premium
                             <ArrowRight className="h-5 w-5" />
