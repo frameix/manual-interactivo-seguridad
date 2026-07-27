@@ -432,7 +432,7 @@ export default function TeacherAdminPanel({ isOpen, onClose }: TeacherAdminPanel
                           <button
                             onClick={() => toggleClassVisibility(lesson.id)}
                             className={`relative flex-shrink-0 inline-flex h-5 w-9 sm:h-6 sm:w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 focus:ring-offset-white dark:focus:ring-offset-[#121214] ${
-                              isVisible ? 'bg-indigo-500 dark:bg-indigo-950/300' : 'bg-neutral-300 dark:bg-neutral-700'
+                              isVisible ? 'bg-indigo-500 dark:bg-indigo-500' : 'bg-neutral-300 dark:bg-neutral-700'
                             }`}
                           >
                             <span
@@ -718,8 +718,8 @@ export default function TeacherAdminPanel({ isOpen, onClose }: TeacherAdminPanel
                     }}
                     className={`px-3 py-1.5 sm:px-4 sm:py-2 rounded-xl text-sm font-bold text-white transition-colors ${
                       confirmDialog.type === 'danger' 
-                        ? 'bg-red-600 hover:bg-red-50 dark:bg-red-950/300' 
-                        : 'bg-cyan-600 hover:bg-cyan-50 dark:bg-cyan-950/300'
+                        ? 'bg-red-600 hover:bg-red-700' 
+                        : 'bg-cyan-600 hover:bg-cyan-700'
                     }`}
                   >
                     Aceptar
