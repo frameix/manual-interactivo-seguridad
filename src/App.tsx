@@ -1451,7 +1451,7 @@ export default function App() {
         onClose={() => setIsUserSettingsOpen(false)} 
         user={user} 
         darkMode={darkMode}
-        userRole={userRole}
+        userRole={isSaaSUser && !effectiveIsPremium ? 'freemium' : userRole}
       />
       {isPaymentModalOpen && user && (
         <PaymentModal 
