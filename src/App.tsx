@@ -248,6 +248,18 @@ export default function App() {
   }, [user]);
 
   // Fetch roles
+  const [userClassId, setUserClassId] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (user) {
+      const classIdRef = ref(db, `users/${user.uid}/classId`);
+      const unsubClass = onValue(classIdRef, (snap) => setUserClassId(snap.val() || null));
+      return () => unsubClass();
+    } else {
+      setUserClassId(null);
+    }
+  }, [user]);
+
   useEffect(() => {
     const rolesRef = ref(db, 'roles');
     return onValue(rolesRef, (snapshot) => {
@@ -350,7 +362,7 @@ export default function App() {
   const isTeacher = userRole === 'teacher' || user?.email === 'profesor@unsm.edu.pe';
   const isSuperAdmin = userRole === 'superadmin' || user?.email === 'manual-seguridad.web.stucco616@passinbox.com';
   const isGuest = userRole === 'guest' || user?.email === 'invitado@unsm.edu.pe';
-  const isUniversityStudent = userRole === 'alumno' || (user?.email?.endsWith('@unsm.edu.pe') && !isTeacher && !isGuest && !isSuperAdmin);
+  const isUniversityStudent = userRole === 'alumno' || userClassId || (user?.email?.endsWith('@unsm.edu.pe') && !isTeacher && !isGuest && !isSuperAdmin);
   const isSaaSUser = userRole === 'freemium' || (user && !isTeacher && !isSuperAdmin && !isGuest && !isUniversityStudent);
   const effectiveIsPremium = userRole === 'premium' || (isPremium && userRole !== 'freemium');
   // Auto-skip Welcome Screen for SuperAdmin
@@ -1356,7 +1368,8 @@ export default function App() {
         isOpen={isUserSettingsOpen} 
         onClose={() => setIsUserSettingsOpen(false)} 
         user={user} 
-        darkMode={darkMode} 
+        darkMode={darkMode}
+        userRole={userRole}
       />
       {isPaymentModalOpen && user && (
         <PaymentModal 

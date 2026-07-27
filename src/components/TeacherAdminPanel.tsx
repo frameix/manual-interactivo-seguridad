@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { Shield, X, Eye, EyeOff, Loader2, BookMarked, Edit2, Save, Lock, Layout, Search, Check, RefreshCw, Pencil, Trash, AlertTriangle, Info } from 'lucide-react';
+import { Shield, X, Eye, EyeOff, Loader2, BookMarked, Edit2, Save, Lock, Layout, Search, Check, RefreshCw, Pencil, Trash, AlertTriangle, Info, KeyRound } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
-import { db } from '../config/firebase';
-import { ref, onValue, set, update } from 'firebase/database';
+import { db, auth } from '../config/firebase';
+import { ref, onValue, set, update, remove } from 'firebase/database';
 import { lessonsData } from '../data/lessons';
 
 interface TeacherAdminPanelProps {
@@ -13,7 +13,7 @@ interface TeacherAdminPanelProps {
 export default function TeacherAdminPanel({ isOpen, onClose }: TeacherAdminPanelProps) {
   const [visibilityData, setVisibilityData] = useState<Record<number, boolean>>({});
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState<'visibility' | 'grades'>('visibility');
+  const [activeTab, setActiveTab] = useState<'visibility' | 'grades' | 'codes'>('visibility');
 
   // Gradebook State
   interface Calificacion {
@@ -31,6 +31,11 @@ export default function TeacherAdminPanel({ isOpen, onClose }: TeacherAdminPanel
   const [editingGradeId, setEditingGradeId] = useState<string | null>(null);
   const [editNotaValue, setEditNotaValue] = useState<string>('');
   const [searchQuery, setSearchQuery] = useState('');
+  
+  // Class Codes State
+  const [classCodes, setClassCodes] = useState<{code: string, teacherEmail: string}[]>([]);
+  const [codesLoading, setCodesLoading] = useState(false);
+  const [newCodeInput, setNewCodeInput] = useState('');
   
   const [confirmDialog, setConfirmDialog] = useState<{
     isOpen: boolean;
@@ -124,6 +129,55 @@ export default function TeacherAdminPanel({ isOpen, onClose }: TeacherAdminPanel
 
     return () => unsubscribe();
   }, [isOpen, activeTab]);
+
+  // Fetch Class Codes when activeTab is 'codes'
+  useEffect(() => {
+    if (!isOpen || activeTab !== 'codes') return;
+    
+    setCodesLoading(true);
+    const codesRef = ref(db, 'classCodes');
+    const unsubscribe = onValue(codesRef, (snapshot) => {
+      const data = snapshot.val() || {};
+      const codesArray = Object.keys(data).map(key => ({
+        code: key,
+        teacherEmail: data[key].teacherEmail || 'Desconocido'
+      }));
+      setClassCodes(codesArray);
+      setCodesLoading(false);
+    }, (error) => {
+      console.error("Firebase onValue error codes:", error);
+      setCodesLoading(false);
+    });
+
+    return () => unsubscribe();
+  }, [isOpen, activeTab]);
+
+  const handleCreateCode = async () => {
+    const code = newCodeInput.trim().toUpperCase();
+    if (!code) return;
+    if (!auth.currentUser?.email) return;
+
+    try {
+      await set(ref(db, `classCodes/${code}`), {
+        teacherEmail: auth.currentUser.email,
+        createdAt: Date.now()
+      });
+      setNewCodeInput('');
+      alert("Código de clase creado exitosamente.");
+    } catch (e) {
+      console.error(e);
+      alert("Error al crear el código. Verifica tus permisos.");
+    }
+  };
+
+  const handleDeleteCode = async (code: string) => {
+    try {
+      await remove(ref(db, `classCodes/${code}`));
+    } catch (e) {
+      console.error(e);
+      alert("Error al eliminar el código.");
+    }
+  };
 
   const handleSaveGrade = async (gradeId: string, currentEditCount: number = 0) => {
     const numValue = parseInt(editNotaValue, 10);
@@ -247,24 +301,39 @@ export default function TeacherAdminPanel({ isOpen, onClose }: TeacherAdminPanel
             </div>
             {/* Tabs */}
             <div className="flex flex-wrap px-5 gap-6 border-t border-neutral-300 dark:border-neutral-800/40">
-              <button
-                onClick={() => setActiveTab('visibility')}
-                className={`py-3 text-xs font-bold tracking-widest uppercase transition-colors flex items-center gap-2 border-b-2 ${
-                  activeTab === 'visibility' ? 'border-indigo-500 text-indigo-600 dark:text-indigo-400' : 'border-transparent text-neutral-500 hover:text-neutral-900 dark:text-zinc-500 dark:hover:text-zinc-300'
-                }`}
-              >
-                <Layout className="w-4 h-4" />
-                Visibilidad
-              </button>
-              <button
-                onClick={() => setActiveTab('grades')}
-                className={`py-3 text-xs font-bold tracking-widest uppercase transition-colors flex items-center gap-2 border-b-2 ${
-                  activeTab === 'grades' ? 'border-emerald-500 text-emerald-600 dark:text-emerald-400' : 'border-transparent text-neutral-500 hover:text-neutral-900 dark:text-zinc-500 dark:hover:text-zinc-300'
-                }`}
-              >
-                <BookMarked className="w-4 h-4" />
-                Libreta de Notas
-              </button>
+                <button
+                  onClick={() => setActiveTab('visibility')}
+                  className={`flex items-center gap-2 px-1 py-3 text-sm font-bold border-b-2 transition-colors ${
+                    activeTab === 'visibility'
+                      ? 'border-indigo-500 text-indigo-600 dark:text-indigo-400'
+                      : 'border-transparent text-neutral-500 hover:text-neutral-700 dark:hover:text-zinc-300'
+                  }`}
+                >
+                  <Eye className="w-4 h-4" />
+                  Módulos
+                </button>
+                <button
+                  onClick={() => setActiveTab('grades')}
+                  className={`flex items-center gap-2 px-1 py-3 text-sm font-bold border-b-2 transition-colors ${
+                    activeTab === 'grades'
+                      ? 'border-indigo-500 text-indigo-600 dark:text-indigo-400'
+                      : 'border-transparent text-neutral-500 hover:text-neutral-700 dark:hover:text-zinc-300'
+                  }`}
+                >
+                  <BookMarked className="w-4 h-4" />
+                  Calificaciones
+                </button>
+                <button
+                  onClick={() => setActiveTab('codes')}
+                  className={`flex items-center gap-2 px-1 py-3 text-sm font-bold border-b-2 transition-colors ${
+                    activeTab === 'codes'
+                      ? 'border-indigo-500 text-indigo-600 dark:text-indigo-400'
+                      : 'border-transparent text-neutral-500 hover:text-neutral-700 dark:hover:text-zinc-300'
+                  }`}
+                >
+                  <KeyRound className="w-4 h-4" />
+                  Códigos de Clase
+                </button>
             </div>
           </div>
 
@@ -500,6 +569,71 @@ export default function TeacherAdminPanel({ isOpen, onClose }: TeacherAdminPanel
                   </div>
                 )}
               </motion.div>
+            ) : (
+              <div className="p-6">
+                <div className="mb-6 flex flex-col gap-2">
+                  <h3 className="text-lg font-bold text-neutral-900 dark:text-white">Generar Código de Invitación</h3>
+                  <p className="text-sm text-neutral-600 dark:text-zinc-400">Los alumnos ingresarán este código en su panel de configuración para ser vinculados automáticamente a tu clase con rol de "Alumno".</p>
+                </div>
+
+                <div className="flex gap-3 mb-8">
+                  <input
+                    type="text"
+                    value={newCodeInput}
+                    onChange={(e) => setNewCodeInput(e.target.value.toUpperCase())}
+                    placeholder="Ej. CIBER2026"
+                    className="flex-1 px-4 py-2 bg-neutral-100 dark:bg-[#0a0a0a] border border-neutral-300 dark:border-neutral-800 rounded-lg focus:outline-none focus:border-indigo-500 text-neutral-900 dark:text-white font-mono uppercase"
+                  />
+                  <button
+                    onClick={handleCreateCode}
+                    disabled={!newCodeInput.trim()}
+                    className="px-6 py-2 bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 disabled:hover:bg-indigo-600 text-white font-bold rounded-lg transition-colors flex items-center gap-2"
+                  >
+                    <KeyRound className="w-4 h-4" /> Crear Código
+                  </button>
+                  <button
+                    onClick={() => {
+                      const randomCode = Math.random().toString(36).substring(2, 8).toUpperCase();
+                      setNewCodeInput(randomCode);
+                    }}
+                    className="px-4 py-2 bg-neutral-200 dark:bg-zinc-800 hover:bg-neutral-300 dark:hover:bg-zinc-700 text-neutral-700 dark:text-zinc-300 font-bold rounded-lg transition-colors flex items-center gap-2"
+                    title="Generar código aleatorio"
+                  >
+                    <RefreshCw className="w-4 h-4" />
+                  </button>
+                </div>
+
+                <div className="space-y-4">
+                  <h4 className="font-bold text-neutral-700 dark:text-zinc-300">Códigos Activos</h4>
+                  {codesLoading ? (
+                    <div className="flex justify-center p-8">
+                      <Loader2 className="w-6 h-6 animate-spin text-indigo-500" />
+                    </div>
+                  ) : classCodes.length === 0 ? (
+                    <div className="text-center py-8 bg-neutral-50 dark:bg-neutral-950/30 rounded-xl border border-neutral-200 dark:border-neutral-800 border-dashed">
+                      <p className="text-sm text-neutral-500">No hay códigos activos.</p>
+                    </div>
+                  ) : (
+                    <div className="grid gap-3">
+                      {classCodes.map((codeObj) => (
+                        <div key={codeObj.code} className="flex items-center justify-between p-4 bg-white dark:bg-zinc-900/50 border border-neutral-200 dark:border-zinc-800 rounded-xl">
+                          <div className="flex flex-col gap-1">
+                            <span className="font-mono text-lg font-bold text-indigo-600 dark:text-indigo-400">{codeObj.code}</span>
+                            <span className="text-xs text-neutral-500">Creado por: {codeObj.teacherEmail}</span>
+                          </div>
+                          <button
+                            onClick={() => handleDeleteCode(codeObj.code)}
+                            className="p-2 text-red-500 hover:bg-red-50 dark:hover:bg-red-950/30 rounded-lg transition-colors"
+                            title="Eliminar código"
+                          >
+                            <Trash className="w-4 h-4" />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </div>
             )}
           </div>
         </motion.div>
