@@ -124,15 +124,11 @@ export default function PaymentModal({ onClose, uid, email }: PaymentModalProps)
                         <span className="text-xs text-neutral-400 text-center px-2">Tu código QR irá aquí</span>
                         {/* <img src="/tu-qr.png" alt="QR Yape" className="w-full h-full object-cover" /> */}
                       </div>
-                      <span className="text-xs font-bold text-neutral-500 dark:text-zinc-400 uppercase tracking-wider">Escanea para pagar</span>
+                      <span className="text-xs font-bold text-neutral-500 dark:text-zinc-400 uppercase tracking-wider">Escanea para pagar con Yape o Plin</span>
                     </div>
                     <div className="flex justify-between items-center mt-1">
-                      <span className="text-xs text-neutral-500 dark:text-zinc-400">Número Yape / Plin</span>
-                      <span className="text-sm font-mono font-bold text-neutral-900 dark:text-white">999 999 999</span>
-                    </div>
-                    <div className="flex justify-between items-center">
                       <span className="text-xs text-neutral-500 dark:text-zinc-400">Titular</span>
-                      <span className="text-sm font-bold text-neutral-900 dark:text-white">M. A. P. A.</span>
+                      <span className="text-sm font-bold text-neutral-900 dark:text-white">Marco P.</span>
                     </div>
                   </div>
                 ) : (
