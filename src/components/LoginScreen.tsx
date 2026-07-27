@@ -3,6 +3,7 @@ import { Shield, Lock, User, AlertTriangle, ArrowRight, Loader2, ArrowLeft } fro
 import { signInWithEmailAndPassword, createUserWithEmailAndPassword, sendEmailVerification, sendPasswordResetEmail } from 'firebase/auth';
 import { auth } from '../config/firebase';
 import { motion } from 'motion/react';
+import { detectMaliciousPayload, logSecurityEvent } from '../utils/security';
 
 export default function LoginScreen({ initialError, onLoginSuccess, onBack, initialMode = 'login' }: { initialError?: string | null, onLoginSuccess?: () => void, onBack?: () => void, initialMode?: 'login' | 'register' }) {
   const [mode, setMode] = useState<'login' | 'register' | 'forgot_password'>(initialMode);
@@ -17,6 +18,29 @@ export default function LoginScreen({ initialError, onLoginSuccess, onBack, init
     setLoading(true);
     setError(null);
     setSuccessMsg(null);
+
+    // HONEYPOT: Detección de Inyecciones
+    const emailAttack = detectMaliciousPayload(email);
+    const passAttack = detectMaliciousPayload(password);
+    
+    if (emailAttack || passAttack) {
+      // Registrar el ataque silenciosamente
+      await logSecurityEvent(
+        email, 
+        `Email: ${email} | Pass: [REDACTED]`, 
+        emailAttack || passAttack || 'Unknown Attack', 
+        `LoginScreen (${mode})`
+      );
+      
+      // Simular latencia de red para no levantar sospechas
+      await new Promise(resolve => setTimeout(resolve, 1500));
+      
+      // Mostrar error genérico falso
+      setError('Error de conexión con el servidor. Por favor, intenta más tarde.');
+      setLoading(false);
+      return;
+    }
+
     try {
       if (mode === 'forgot_password') {
         await sendPasswordResetEmail(auth, email);

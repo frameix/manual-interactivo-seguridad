@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { X, Loader2, DollarSign, CheckCircle, AlertTriangle, Info, KeyRound } from 'lucide-react';
+import { X, Loader2, DollarSign, CheckCircle, AlertTriangle, Info, KeyRound, ShieldAlert } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { db } from '../config/firebase';
 import { ref, onValue, set, update } from 'firebase/database';
@@ -10,7 +10,7 @@ interface SuperAdminPanelProps {
 }
 
 export default function SuperAdminPanel({ isOpen, onClose }: SuperAdminPanelProps) {
-  const [activeTab, setActiveTab] = useState<'saas' | 'roles' | 'codes'>('saas');
+  const [activeTab, setActiveTab] = useState<'saas' | 'roles' | 'codes' | 'security'>('saas');
   const [confirmDialog, setConfirmDialog] = useState<{
     isOpen: boolean;
     type: 'danger' | 'info';
@@ -77,7 +77,10 @@ export default function SuperAdminPanel({ isOpen, onClose }: SuperAdminPanelProp
   // Class Codes State
   const [classCodes, setClassCodes] = useState<{code: string, teacherEmail: string, createdAt: number}[]>([]);
 
-  // Fetch Roles, Users, and Codes
+  // Security Logs State
+  const [securityLogs, setSecurityLogs] = useState<any[]>([]);
+
+  // Fetch Roles, Users, Codes, and Security Logs
   useEffect(() => {
     if (!isOpen) return;
     const rolesRef = ref(db, 'roles');
@@ -99,11 +102,25 @@ export default function SuperAdminPanel({ isOpen, onClose }: SuperAdminPanelProp
       })).sort((a, b) => b.createdAt - a.createdAt);
       setClassCodes(codesArray);
     });
+    const logsRef = ref(db, 'securityLogs');
+    const unsubLogs = onValue(logsRef, (snapshot) => {
+      const data = snapshot.val() || {};
+      const logsArray = Object.keys(data).map(key => ({
+        id: key,
+        ...data[key]
+      })).sort((a, b) => {
+         const timeA = a.timestamp ? (typeof a.timestamp === 'number' ? a.timestamp : 0) : 0;
+         const timeB = b.timestamp ? (typeof b.timestamp === 'number' ? b.timestamp : 0) : 0;
+         return timeB - timeA;
+      });
+      setSecurityLogs(logsArray);
+    });
 
     return () => {
       unsubRoles();
       unsubUsers();
       unsubCodes();
+      unsubLogs();
     };
   }, [isOpen]);
 
@@ -279,6 +296,15 @@ export default function SuperAdminPanel({ isOpen, onClose }: SuperAdminPanelProp
               >
                 <KeyRound className="w-4 h-4" />
                 Códigos de Clase
+              </button>
+              <button
+                onClick={() => setActiveTab('security')}
+                className={`py-3 text-xs font-bold tracking-widest uppercase transition-colors flex items-center gap-2 border-b-2 ${
+                  activeTab === 'security' ? 'border-amber-500 text-amber-600 dark:text-amber-400' : 'border-transparent text-neutral-500 hover:text-neutral-700 dark:text-zinc-500 dark:hover:text-zinc-300'
+                }`}
+              >
+                <ShieldAlert className="w-4 h-4" />
+                Logs de Seguridad
               </button>
             </div>
           </div>
@@ -548,6 +574,54 @@ export default function SuperAdminPanel({ isOpen, onClose }: SuperAdminPanelProp
                 </div>
               </motion.div>
             )}
+            {activeTab === 'security' && (
+              <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-6">
+                <div className="bg-red-50 dark:bg-red-950/30 border border-red-400 dark:border-red-900/40 rounded-xl p-4 flex gap-3">
+                  <ShieldAlert className="w-5 h-5 text-red-500 shrink-0 mt-0.5" />
+                  <p className="text-xs text-red-800 dark:text-red-300 leading-relaxed">
+                    <strong>Honeypots Activos:</strong> Estos son los intentos de inyección y ataques detectados por el sistema en tiempo real. Los atacantes no saben que fueron interceptados.
+                  </p>
+                </div>
+
+                <div className="space-y-4">
+                  {securityLogs.length === 0 ? (
+                    <div className="text-center py-12 bg-white dark:bg-[#121214] rounded-2xl border border-neutral-300 dark:border-zinc-800 border-dashed">
+                      <ShieldAlert className="w-10 h-10 text-neutral-300 dark:text-zinc-700 mx-auto mb-3" />
+                      <p className="text-sm text-neutral-500 dark:text-zinc-500">No se han detectado intentos de ataque recientes.</p>
+                    </div>
+                  ) : (
+                    securityLogs.map(log => (
+                      <div key={log.id} className="bg-white dark:bg-[#121214] rounded-2xl border border-red-200 dark:border-red-900/30 p-5">
+                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                          <div>
+                            <div className="flex items-center gap-2 mb-1">
+                              <span className="text-xs font-bold px-2 py-0.5 rounded-full bg-red-100 dark:bg-red-900/40 text-red-700 dark:text-red-400 border border-red-200 dark:border-red-800/50">
+                                {log.attackType}
+                              </span>
+                              <span className="text-xs text-neutral-500 dark:text-zinc-500">
+                                {log.timestamp ? new Date(log.timestamp).toLocaleString('es-ES') : 'Fecha desconocida'}
+                              </span>
+                            </div>
+                            <h4 className="text-sm font-bold text-neutral-900 dark:text-white mt-2">
+                              Origen: <span className="font-mono text-xs font-normal text-neutral-600 dark:text-zinc-400">{log.location}</span>
+                            </h4>
+                            <p className="text-sm text-neutral-600 dark:text-zinc-400 mt-1">
+                              <strong>Atacante (Email):</strong> {log.userEmail}
+                            </p>
+                            <div className="mt-3 p-3 bg-neutral-100 dark:bg-black/50 rounded-xl border border-neutral-200 dark:border-neutral-800">
+                              <p className="text-xs font-mono text-red-600 dark:text-red-400 break-all">
+                                {log.payload}
+                              </p>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    ))
+                  )}
+                </div>
+              </motion.div>
+            )}
+
           </div>
         </motion.div>
 
