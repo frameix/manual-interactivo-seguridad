@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from 'motion/react';
 import { db, auth } from '../config/firebase';
 import { ref, onValue, set, update, remove } from 'firebase/database';
 import { lessonsData } from '../data/lessons';
+import * as XLSX from 'xlsx';
 
 interface TeacherAdminPanelProps {
   isOpen: boolean;
@@ -316,36 +317,45 @@ export default function TeacherAdminPanel({ isOpen, onClose }: TeacherAdminPanel
     }
   };
 
-  const handleExportCSV = () => {
-    const headers = ["Estudiante", "Modulo", "Nota", "NotaMaxima", "Fecha"];
-    
-    // Filtrar calificaciones si hay búsqueda, o exportar todas si el profe prefiere
-    // Exportaremos todas las que coinciden con la búsqueda actual para más flexibilidad
+  const handleExportExcel = () => {
+    // Filtrar calificaciones
     const filteredGrades = grades.filter(grade => 
       grade.estudiante.toLowerCase().includes(searchQuery.toLowerCase())
     );
 
-    const rows = filteredGrades.map(grade => {
+    // Formatear los datos para Excel
+    const dataForExcel = filteredGrades.map(grade => {
       const lessonInfo = lessonsData.find(l => l.id === grade.clase);
       const title = lessonInfo ? `Módulo ${grade.clase}: ${lessonInfo.title}` : `Clase ${grade.clase}`;
       const dateStr = grade.fecha || new Date(grade.timestamp || 0).toLocaleDateString('es-ES');
       
-      const cleanStudent = grade.estudiante.replace(/"/g, '""');
-      const cleanTitle = title.replace(/"/g, '""');
-
-      return `"${cleanStudent}","${cleanTitle}",${grade.nota},${grade.notaMaxima},"${dateStr}"`;
+      return {
+        "Estudiante": grade.estudiante,
+        "Módulo": title,
+        "Nota": grade.nota,
+        "Nota Máxima": grade.notaMaxima,
+        "Fecha": dateStr
+      };
     });
 
-    const csvContent = "\uFEFF" + [headers.join(","), ...rows].join("\n"); // Añadido BOM para Excel
-    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-    const url = URL.createObjectURL(blob);
+    // Crear un libro y una hoja de trabajo
+    const worksheet = XLSX.utils.json_to_sheet(dataForExcel);
     
-    const link = document.createElement("a");
-    link.setAttribute("href", url);
-    link.setAttribute("download", `Calificaciones_AulaVirtual_${new Date().toISOString().split('T')[0]}.csv`);
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+    // Ajustar el ancho de las columnas para que se vea bonito
+    const wscols = [
+      { wch: 30 }, // Estudiante
+      { wch: 40 }, // Módulo
+      { wch: 10 }, // Nota
+      { wch: 15 }, // Nota Máxima
+      { wch: 15 }  // Fecha
+    ];
+    worksheet['!cols'] = wscols;
+
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Calificaciones");
+
+    // Generar y descargar el archivo XLSX
+    XLSX.writeFile(workbook, `Calificaciones_AulaVirtual_${new Date().toISOString().split('T')[0]}.xlsx`);
   };
 
   const handleSaveGrade = async (gradeId: string, currentEditCount: number = 0) => {
@@ -608,13 +618,13 @@ export default function TeacherAdminPanel({ isOpen, onClose }: TeacherAdminPanel
                         Total: {grades.length} evaluaciones
                       </div>
                       <button
-                        onClick={handleExportCSV}
+                        onClick={handleExportExcel}
                         disabled={grades.length === 0}
                         className="flex items-center gap-1.5 text-xs font-bold px-3 py-1.5 bg-emerald-50 dark:bg-emerald-950/30 text-emerald-600 dark:text-emerald-400 rounded-full border border-emerald-200 dark:border-emerald-900/40 hover:bg-emerald-100 dark:hover:bg-emerald-900/50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                        title="Exportar calificaciones a Excel/CSV"
+                        title="Exportar calificaciones a Excel (.xlsx)"
                       >
                         <Download className="w-3.5 h-3.5" />
-                        Exportar CSV
+                        Exportar Excel
                       </button>
                     </div>
                   </div>
