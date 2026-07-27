@@ -358,6 +358,14 @@ export default function App() {
   const isUniversityStudent = userRole === 'alumno' || (user?.email?.endsWith('@unsm.edu.pe') && !isTeacher && !isGuest && !isSuperAdmin);
   const isSaaSUser = userRole === 'freemium' || (user && !isTeacher && !isSuperAdmin && !isGuest && !isUniversityStudent);
   const effectiveIsPremium = userRole === 'premium' || (isPremium && userRole !== 'freemium');
+  // Auto-skip Welcome Screen for SuperAdmin
+  useEffect(() => {
+    if (user && isSuperAdmin && selectedClassId === 0) {
+      setSelectedClassId(-1);
+      localStorage.setItem("manual_selectedClassId", "-1");
+    }
+  }, [user, isSuperAdmin, selectedClassId]);
+
   // Filter lessons based on visibility for students
   const visibleLessons = lessonsData.filter(l => {
     if (isTeacher || isSuperAdmin || isGuest) return true;
