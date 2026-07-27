@@ -44,15 +44,15 @@ export default function LandingPage({ onLoginClick, onRegisterClick }: LandingPa
               <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-indigo-400 opacity-75"></span>
               <span className="relative inline-flex rounded-full h-2 w-2 bg-indigo-500"></span>
             </span>
-            Plataforma de Ciberseguridad
+            El camino del Pentester Profesional
           </div>
 
           <h1 className="text-5xl md:text-7xl font-black tracking-tight mb-8 leading-[1.1] max-w-4xl text-slate-900 dark:text-white">
-            Domina la Ciberseguridad con <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 to-emerald-500 dark:from-indigo-400 dark:to-emerald-400">Práctica Real</span>
+            Fórjate como Hacker con <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 to-emerald-500 dark:from-indigo-400 dark:to-emerald-400">Práctica Real</span>
           </h1>
           
           <p className="text-lg md:text-xl text-slate-600 dark:text-zinc-400 max-w-2xl mb-12 leading-relaxed">
-            Un manual interactivo tipo laboratorio diseñado para aprender Auditoría, Hacking Ético y Criptografía a través de simuladores en tiempo real.
+            Entiende cómo piensan los atacantes para construir defensas impenetrables. Un campo de entrenamiento en <strong>Hacking Ético</strong> y <strong>Auditoría</strong> con simuladores 100% seguros.
           </p>
 
           <div className="flex flex-col sm:flex-row gap-4 w-full sm:w-auto">
