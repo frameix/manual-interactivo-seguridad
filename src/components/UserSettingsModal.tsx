@@ -17,6 +17,7 @@ export const UserSettingsModal: React.FC<UserSettingsModalProps> = ({ isOpen, on
   const [deleteInput, setDeleteInput] = useState('');
   const [isDeleting, setIsDeleting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [showDeleteZone, setShowDeleteZone] = useState(false);
   const [resetMessage, setResetMessage] = useState<string | null>(null);
   const [isResetting, setIsResetting] = useState(false);
   const [classCode, setClassCode] = useState('');
@@ -220,64 +221,75 @@ export const UserSettingsModal: React.FC<UserSettingsModalProps> = ({ isOpen, on
             </button>
           </div>
 
-          <div className="space-y-4">
-            <h3 className="text-sm font-bold text-red-600 dark:text-red-400 flex items-center gap-2">
-              <Trash2 className="w-4 h-4" />
-              Zona de Peligro: Eliminar Cuenta
-            </h3>
-            
-            <p className="text-sm text-neutral-700 dark:text-zinc-400 leading-relaxed">
-              Al eliminar tu cuenta, perderás acceso a todo el contenido del Manual Interactivo. Tus datos, progreso y acceso serán borrados permanentemente y <strong>esta acción no se puede deshacer</strong>.
-            </p>
+          <div className="pt-4">
+            {!showDeleteZone ? (
+              <button
+                onClick={() => setShowDeleteZone(true)}
+                className="text-xs font-medium text-neutral-400 dark:text-zinc-500 hover:text-red-500 dark:hover:text-red-400 transition-colors hover:underline underline-offset-2"
+              >
+                Mostrar opciones avanzadas (Eliminar cuenta)
+              </button>
+            ) : (
+              <div className="space-y-4 p-5 border border-red-200 dark:border-red-900/30 rounded-xl bg-red-50/30 dark:bg-red-950/10">
+                <h3 className="text-sm font-bold text-red-600 dark:text-red-400 flex items-center gap-2">
+                  <Trash2 className="w-4 h-4" />
+                  Zona de Peligro: Eliminar Cuenta
+                </h3>
+                
+                <p className="text-sm text-neutral-700 dark:text-zinc-400 leading-relaxed">
+                  Al eliminar tu cuenta, perderás acceso a todo el contenido del Manual Interactivo. Tus datos, progreso y acceso serán borrados permanentemente y <strong>esta acción no se puede deshacer</strong>.
+                </p>
 
-            {error && (
-              <div className="p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg text-sm text-red-600 dark:text-red-400">
-                <p className="mb-2">{error}</p>
-                {error.includes('cerrar sesión') && (
-                  <button
-                    onClick={handleLogoutAndReauth}
-                    className="flex items-center justify-center gap-2 w-full py-2 bg-red-100 hover:bg-red-200 dark:bg-red-900/40 dark:hover:bg-red-900/60 text-red-700 dark:text-red-300 rounded font-bold transition-colors"
-                  >
-                    <LogOut className="w-4 h-4" /> Cerrar Sesión Ahora
-                  </button>
+                {error && (
+                  <div className="p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg text-sm text-red-600 dark:text-red-400">
+                    <p className="mb-2">{error}</p>
+                    {error.includes('cerrar sesión') && (
+                      <button
+                        onClick={handleLogoutAndReauth}
+                        className="flex items-center justify-center gap-2 w-full py-2 bg-red-100 hover:bg-red-200 dark:bg-red-900/40 dark:hover:bg-red-900/60 text-red-700 dark:text-red-300 rounded font-bold transition-colors"
+                      >
+                        <LogOut className="w-4 h-4" /> Cerrar Sesión Ahora
+                      </button>
+                    )}
+                  </div>
                 )}
+
+                <div className="space-y-3 pt-4 border-t border-red-200/50 dark:border-red-900/30">
+                  <label className="block text-sm font-medium text-neutral-800 dark:text-zinc-300">
+                    Para confirmar, escribe: <span className="font-mono bg-neutral-100 dark:bg-zinc-800 px-1.5 py-0.5 rounded text-red-600 dark:text-red-400 select-all">deseo eliminar mi cuenta</span>
+                  </label>
+                  <input
+                    type="text"
+                    value={deleteInput}
+                    onChange={(e) => setDeleteInput(e.target.value)}
+                    placeholder="deseo eliminar mi cuenta"
+                    className="w-full bg-white dark:bg-[#0c0c0e] border border-neutral-300 dark:border-zinc-700 rounded-lg px-4 py-2.5 text-neutral-900 dark:text-white placeholder-neutral-400 focus:outline-none focus:border-red-500 focus:ring-1 focus:ring-red-500 transition-colors"
+                  />
+                </div>
+
+                <button
+                  onClick={handleDeleteAccount}
+                  disabled={deleteInput !== 'deseo eliminar mi cuenta' || isDeleting}
+                  className={`w-full py-3 rounded-lg font-bold flex items-center justify-center gap-2 transition-all ${
+                    deleteInput === 'deseo eliminar mi cuenta' && !isDeleting
+                      ? 'bg-red-600 hover:bg-red-700 text-white shadow-[0_0_20px_rgba(220,38,38,0.3)]'
+                      : 'bg-neutral-200 dark:bg-zinc-800 text-neutral-500 dark:text-zinc-500 cursor-not-allowed'
+                  }`}
+                >
+                  {isDeleting ? (
+                    <>
+                      <Loader2 className="w-5 h-5 animate-spin" />
+                      Eliminando...
+                    </>
+                  ) : (
+                    <>
+                      <Trash2 className="w-5 h-5" />
+                      Eliminar mi cuenta definitivamente
+                    </>
+                  )}
+                </button>
               </div>
             )}
-
-            <div className="space-y-3 pt-4 border-t border-neutral-200 dark:border-zinc-800">
-              <label className="block text-sm font-medium text-neutral-800 dark:text-zinc-300">
-                Para confirmar, escribe: <span className="font-mono bg-neutral-100 dark:bg-zinc-800 px-1.5 py-0.5 rounded text-red-600 dark:text-red-400 select-all">deseo eliminar mi cuenta</span>
-              </label>
-              <input
-                type="text"
-                value={deleteInput}
-                onChange={(e) => setDeleteInput(e.target.value)}
-                placeholder="deseo eliminar mi cuenta"
-                className="w-full bg-white dark:bg-[#0c0c0e] border border-neutral-300 dark:border-zinc-700 rounded-lg px-4 py-2.5 text-neutral-900 dark:text-white placeholder-neutral-400 focus:outline-none focus:border-red-500 focus:ring-1 focus:ring-red-500 transition-colors"
-              />
-            </div>
-
-            <button
-              onClick={handleDeleteAccount}
-              disabled={deleteInput !== 'deseo eliminar mi cuenta' || isDeleting}
-              className={`w-full py-3 rounded-lg font-bold flex items-center justify-center gap-2 transition-all ${
-                deleteInput === 'deseo eliminar mi cuenta' && !isDeleting
-                  ? 'bg-red-600 hover:bg-red-700 text-white shadow-[0_0_20px_rgba(220,38,38,0.3)]'
-                  : 'bg-neutral-200 dark:bg-zinc-800 text-neutral-500 dark:text-zinc-500 cursor-not-allowed'
-              }`}
-            >
-              {isDeleting ? (
-                <>
-                  <Loader2 className="w-5 h-5 animate-spin" />
-                  Eliminando...
-                </>
-              ) : (
-                <>
-                  <Trash2 className="w-5 h-5" />
-                  Eliminar mi cuenta definitivamente
-                </>
-              )}
-            </button>
           </div>
         </div>
       </div>
