@@ -569,7 +569,9 @@ export default function TeacherAdminPanel({ isOpen, onClose }: TeacherAdminPanel
                   </div>
                 )}
               </motion.div>
-            ) : (
+            )}
+
+            {activeTab === 'codes' && (
               <div className="p-6">
                 <div className="mb-6 flex flex-col gap-2">
                   <h3 className="text-lg font-bold text-neutral-900 dark:text-white">Generar Código de Invitación</h3>
