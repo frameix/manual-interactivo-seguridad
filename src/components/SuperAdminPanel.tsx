@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { X, Loader2, DollarSign, CheckCircle, AlertTriangle, Info, KeyRound, ShieldAlert } from 'lucide-react';
+import { X, Loader2, DollarSign, CheckCircle, AlertTriangle, Info, KeyRound, ShieldAlert, Trash } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { db } from '../config/firebase';
 import { ref, onValue, set, update } from 'firebase/database';
@@ -228,6 +228,25 @@ export default function SuperAdminPanel({ isOpen, onClose }: SuperAdminPanelProp
     });
   };
 
+  const handleClearLogs = () => {
+    setConfirmDialog({
+      isOpen: true,
+      type: 'danger',
+      title: 'Limpiar Logs de Seguridad',
+      message: '¿Estás seguro de eliminar todo el historial de ataques interceptados? Esta acción no se puede deshacer.',
+      onConfirm: async () => {
+        try {
+          await set(ref(db, 'securityLogs'), null);
+        } catch (e) {
+          console.error(e);
+        }
+      }
+    });
+  };
+
+  const hasPendingPayments = paymentRequests.some(p => p.status === 'pending');
+  const hasUnreadSecurityLogs = securityLogs.length > 0;
+
   if (!isOpen) return null;
 
   return (
@@ -272,10 +291,16 @@ export default function SuperAdminPanel({ isOpen, onClose }: SuperAdminPanelProp
             <div className="flex flex-wrap px-5 gap-6 border-t border-amber-200 dark:border-amber-900/30">
               <button
                 onClick={() => setActiveTab('saas')}
-                className={`py-3 text-xs font-bold tracking-widest uppercase transition-colors flex items-center gap-2 border-b-2 ${
+                className={`relative py-3 text-xs font-bold tracking-widest uppercase transition-colors flex items-center gap-2 border-b-2 ${
                   activeTab === 'saas' ? 'border-amber-500 text-amber-600 dark:text-amber-400' : 'border-transparent text-neutral-500 hover:text-neutral-700 dark:text-zinc-500 dark:hover:text-zinc-300'
                 }`}
               >
+                {hasPendingPayments && (
+                  <span className="absolute top-2.5 -right-2 flex h-2 w-2">
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
+                    <span className="relative inline-flex rounded-full h-2 w-2 bg-amber-500"></span>
+                  </span>
+                )}
                 <DollarSign className="w-4 h-4" />
                 SaaS & Pagos
               </button>
@@ -299,10 +324,16 @@ export default function SuperAdminPanel({ isOpen, onClose }: SuperAdminPanelProp
               </button>
               <button
                 onClick={() => setActiveTab('security')}
-                className={`py-3 text-xs font-bold tracking-widest uppercase transition-colors flex items-center gap-2 border-b-2 ${
+                className={`relative py-3 text-xs font-bold tracking-widest uppercase transition-colors flex items-center gap-2 border-b-2 ${
                   activeTab === 'security' ? 'border-amber-500 text-amber-600 dark:text-amber-400' : 'border-transparent text-neutral-500 hover:text-neutral-700 dark:text-zinc-500 dark:hover:text-zinc-300'
                 }`}
               >
+                {hasUnreadSecurityLogs && (
+                  <span className="absolute top-2.5 -right-2 flex h-2 w-2">
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+                    <span className="relative inline-flex rounded-full h-2 w-2 bg-red-500"></span>
+                  </span>
+                )}
                 <ShieldAlert className="w-4 h-4" />
                 Logs de Seguridad
               </button>
@@ -576,11 +607,23 @@ export default function SuperAdminPanel({ isOpen, onClose }: SuperAdminPanelProp
             )}
             {activeTab === 'security' && (
               <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-6">
-                <div className="bg-red-50 dark:bg-red-950/30 border border-red-400 dark:border-red-900/40 rounded-xl p-4 flex gap-3">
-                  <ShieldAlert className="w-5 h-5 text-red-500 shrink-0 mt-0.5" />
-                  <p className="text-xs text-red-800 dark:text-red-300 leading-relaxed">
-                    <strong>Honeypots Activos:</strong> Estos son los intentos de inyección y ataques detectados por el sistema en tiempo real. Los atacantes no saben que fueron interceptados.
-                  </p>
+                <div className="flex flex-col md:flex-row gap-4 items-start md:items-center justify-between">
+                  <div className="bg-red-50 dark:bg-red-950/30 border border-red-400 dark:border-red-900/40 rounded-xl p-4 flex gap-3 flex-1">
+                    <ShieldAlert className="w-5 h-5 text-red-500 shrink-0 mt-0.5" />
+                    <p className="text-xs text-red-800 dark:text-red-300 leading-relaxed">
+                      <strong>Honeypots Activos:</strong> Estos son los intentos de inyección y ataques detectados por el sistema en tiempo real. Los atacantes no saben que fueron interceptados.
+                    </p>
+                  </div>
+                  
+                  {securityLogs.length > 0 && (
+                    <button
+                      onClick={handleClearLogs}
+                      className="flex items-center gap-2 px-4 py-2 bg-white dark:bg-[#121214] border border-red-200 dark:border-red-900/50 hover:bg-red-50 dark:hover:bg-red-950/30 text-red-600 dark:text-red-400 rounded-lg text-xs font-bold uppercase tracking-wider transition-colors"
+                    >
+                      <Trash className="w-4 h-4" />
+                      Limpiar Logs
+                    </button>
+                  )}
                 </div>
 
                 <div className="space-y-4">
