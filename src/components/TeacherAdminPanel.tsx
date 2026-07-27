@@ -195,19 +195,27 @@ export default function TeacherAdminPanel({ isOpen, onClose }: TeacherAdminPanel
     }
   };
 
-  const handleDeleteCode = async (code: string) => {
-    try {
-      await remove(ref(db, `classCodes/${code}`));
-    } catch (e) {
-      console.error(e);
-      setConfirmDialog({
-        isOpen: true,
-        type: 'danger',
-        title: 'Error',
-        message: 'No se pudo eliminar el código. Verifica tus permisos.',
-        onConfirm: () => {}
-      });
-    }
+  const handleDeleteCode = (code: string) => {
+    setConfirmDialog({
+      isOpen: true,
+      type: 'danger',
+      title: '¿Eliminar código de clase?',
+      message: `El código ${code} será eliminado. Los alumnos actuales mantendrán su acceso, pero ningún alumno nuevo podrá usar este código.`,
+      onConfirm: async () => {
+        try {
+          await remove(ref(db, `classCodes/${code}`));
+        } catch (e) {
+          console.error(e);
+          setConfirmDialog({
+            isOpen: true,
+            type: 'danger',
+            title: 'Error',
+            message: 'No se pudo eliminar el código. Verifica tus permisos.',
+            onConfirm: () => {}
+          });
+        }
+      }
+    });
   };
 
   const handleSaveGrade = async (gradeId: string, currentEditCount: number = 0) => {

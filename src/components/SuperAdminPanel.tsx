@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { X, Loader2, DollarSign, CheckCircle, AlertTriangle, Info } from 'lucide-react';
+import { X, Loader2, DollarSign, CheckCircle, AlertTriangle, Info, KeyRound } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { db } from '../config/firebase';
 import { ref, onValue, set, update } from 'firebase/database';
@@ -10,7 +10,7 @@ interface SuperAdminPanelProps {
 }
 
 export default function SuperAdminPanel({ isOpen, onClose }: SuperAdminPanelProps) {
-  const [activeTab, setActiveTab] = useState<'saas' | 'roles'>('saas');
+  const [activeTab, setActiveTab] = useState<'saas' | 'roles' | 'codes'>('saas');
   const [confirmDialog, setConfirmDialog] = useState<{
     isOpen: boolean;
     type: 'danger' | 'info';
@@ -74,7 +74,10 @@ export default function SuperAdminPanel({ isOpen, onClose }: SuperAdminPanelProp
 
   const [allUsers, setAllUsers] = useState<Record<string, any>>({});
 
-  // Fetch Roles and Users
+  // Class Codes State
+  const [classCodes, setClassCodes] = useState<{code: string, teacherEmail: string, createdAt: number}[]>([]);
+
+  // Fetch Roles, Users, and Codes
   useEffect(() => {
     if (!isOpen) return;
     const rolesRef = ref(db, 'roles');
@@ -87,9 +90,20 @@ export default function SuperAdminPanel({ isOpen, onClose }: SuperAdminPanelProp
       setAllUsers(snapshot.val() || {});
     });
 
+    const codesRef = ref(db, 'classCodes');
+    const unsubCodes = onValue(codesRef, (snapshot) => {
+      const data = snapshot.val() || {};
+      const codesArray = Object.keys(data).map(key => ({
+        code: key,
+        ...data[key]
+      })).sort((a, b) => b.createdAt - a.createdAt);
+      setClassCodes(codesArray);
+    });
+
     return () => {
       unsubRoles();
       unsubUsers();
+      unsubCodes();
     };
   }, [isOpen]);
 
@@ -139,6 +153,22 @@ export default function SuperAdminPanel({ isOpen, onClose }: SuperAdminPanelProp
       onConfirm: async () => {
         try {
           await set(ref(db, `roles/${encodedEmail}`), null);
+        } catch (e) {
+          console.error(e);
+        }
+      }
+    });
+  };
+
+  const handleDeleteCode = async (code: string) => {
+    setConfirmDialog({
+      isOpen: true,
+      type: 'danger',
+      title: 'Eliminar Código',
+      message: `¿Estás seguro de eliminar el código ${code}? Ningún alumno nuevo podrá usarlo.`,
+      onConfirm: async () => {
+        try {
+          await set(ref(db, `classCodes/${code}`), null);
         } catch (e) {
           console.error(e);
         }
@@ -240,6 +270,15 @@ export default function SuperAdminPanel({ isOpen, onClose }: SuperAdminPanelProp
               >
                 <Info className="w-4 h-4" />
                 Gestión de Roles
+              </button>
+              <button
+                onClick={() => setActiveTab('codes')}
+                className={`py-3 text-xs font-bold tracking-widest uppercase transition-colors flex items-center gap-2 border-b-2 ${
+                  activeTab === 'codes' ? 'border-amber-500 text-amber-600 dark:text-amber-400' : 'border-transparent text-neutral-500 hover:text-neutral-700 dark:text-zinc-500 dark:hover:text-zinc-300'
+                }`}
+              >
+                <KeyRound className="w-4 h-4" />
+                Códigos de Clase
               </button>
             </div>
           </div>
@@ -452,6 +491,60 @@ export default function SuperAdminPanel({ isOpen, onClose }: SuperAdminPanelProp
                       )}
                     </tbody>
                   </table>
+                </div>
+              </motion.div>
+            )}
+
+            {activeTab === 'codes' && (
+              <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-6">
+                <div className="flex flex-col gap-3">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <h3 className="text-lg font-bold text-neutral-900 dark:text-white">Códigos Activos</h3>
+                      <p className="text-sm text-neutral-600 dark:text-zinc-400">Códigos generados por los profesores.</p>
+                    </div>
+                    <div className="text-xs text-amber-700 dark:text-amber-500 bg-amber-100 dark:bg-amber-950/30 px-3 py-1 rounded-full border border-amber-300 dark:border-amber-900/40">
+                      Total: {classCodes.length}
+                    </div>
+                  </div>
+
+                  <div className="bg-white dark:bg-[#18181b] rounded-xl border border-neutral-300 dark:border-neutral-800 overflow-hidden">
+                    <div className="overflow-x-auto">
+                      <table className="w-full text-left border-collapse">
+                        <thead>
+                          <tr className="bg-neutral-50 dark:bg-zinc-900/50 border-b border-neutral-300 dark:border-neutral-800">
+                            <th className="p-4 text-xs font-bold text-neutral-500 dark:text-zinc-400 uppercase tracking-wider">Código</th>
+                            <th className="p-4 text-xs font-bold text-neutral-500 dark:text-zinc-400 uppercase tracking-wider">Profesor</th>
+                            <th className="p-4 text-xs font-bold text-neutral-500 dark:text-zinc-400 uppercase tracking-wider text-right">Acciones</th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-neutral-200 dark:divide-neutral-800">
+                          {classCodes.length === 0 ? (
+                            <tr>
+                              <td colSpan={3} className="p-8 text-center text-sm text-neutral-500 dark:text-zinc-500">
+                                No hay códigos de clase activos.
+                              </td>
+                            </tr>
+                          ) : (
+                            classCodes.map(codeObj => (
+                              <tr key={codeObj.code} className="hover:bg-neutral-50 dark:hover:bg-zinc-900/30 transition-colors">
+                                <td className="p-4 font-mono font-bold text-indigo-600 dark:text-indigo-400">{codeObj.code}</td>
+                                <td className="p-4 text-sm font-medium text-neutral-900 dark:text-zinc-200">{codeObj.teacherEmail}</td>
+                                <td className="p-4 text-right">
+                                  <button
+                                    onClick={() => handleDeleteCode(codeObj.code)}
+                                    className="px-3 py-1 bg-red-50 hover:bg-red-100 dark:bg-red-950/30 dark:hover:bg-red-900/50 text-red-600 dark:text-red-400 text-xs font-bold rounded-lg border border-red-200 dark:border-red-900/40 transition-colors"
+                                  >
+                                    Eliminar
+                                  </button>
+                                </td>
+                              </tr>
+                            ))
+                          )}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
                 </div>
               </motion.div>
             )}
