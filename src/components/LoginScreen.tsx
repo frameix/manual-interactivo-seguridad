@@ -1,28 +1,36 @@
 import React, { useState } from 'react';
 import { Shield, Lock, User, AlertTriangle, ArrowRight, Loader2, ArrowLeft } from 'lucide-react';
-import { signInWithEmailAndPassword, createUserWithEmailAndPassword } from 'firebase/auth';
+import { signInWithEmailAndPassword, createUserWithEmailAndPassword, sendEmailVerification, sendPasswordResetEmail } from 'firebase/auth';
 import { auth } from '../config/firebase';
 import { motion } from 'motion/react';
 
 export default function LoginScreen({ initialError, onLoginSuccess, onBack, initialMode = 'login' }: { initialError?: string | null, onLoginSuccess?: () => void, onBack?: () => void, initialMode?: 'login' | 'register' }) {
-  const [mode, setMode] = useState<'login' | 'register'>(initialMode);
+  const [mode, setMode] = useState<'login' | 'register' | 'forgot_password'>(initialMode);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(initialError || null);
+  const [successMsg, setSuccessMsg] = useState<string | null>(null);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     setError(null);
+    setSuccessMsg(null);
     try {
-      if (mode === 'login') {
+      if (mode === 'forgot_password') {
+        await sendPasswordResetEmail(auth, email);
+        setSuccessMsg('Se ha enviado un enlace a tu correo para restablecer tu contraseña.');
+        setMode('login');
+      } else if (mode === 'login') {
         await signInWithEmailAndPassword(auth, email, password);
+        if (onLoginSuccess) onLoginSuccess();
       } else {
-        await createUserWithEmailAndPassword(auth, email, password);
-      }
-      if (onLoginSuccess) {
-        onLoginSuccess();
+        const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+        if (userCredential.user) {
+          await sendEmailVerification(userCredential.user);
+        }
+        if (onLoginSuccess) onLoginSuccess();
       }
     } catch (err: any) {
       console.error(err);
@@ -84,6 +92,17 @@ export default function LoginScreen({ initialError, onLoginSuccess, onBack, init
                 <p className="text-sm text-red-300">{error}</p>
               </motion.div>
             )}
+            
+            {successMsg && (
+              <motion.div 
+                initial={{ opacity: 0, height: 0 }} 
+                animate={{ opacity: 1, height: 'auto' }} 
+                className="bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-400 dark:border-emerald-900/40 rounded-xl p-3 flex flex-wrap items-start gap-3"
+              >
+                <Shield className="w-5 h-5 text-emerald-400 shrink-0 mt-0.5" />
+                <p className="text-sm text-emerald-300">{successMsg}</p>
+              </motion.div>
+            )}
 
             <div className="space-y-4">
               <div className="relative group">
@@ -96,23 +115,25 @@ export default function LoginScreen({ initialError, onLoginSuccess, onBack, init
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   className="block w-full pl-11 pr-4 py-3.5 bg-black/50 border border-white/10 rounded-xl text-white placeholder:text-zinc-600 focus:ring-2 focus:ring-cyan-500/50 focus:border-cyan-500 outline-none transition-all"
-                  placeholder="Correo institucional"
+                  placeholder="Correo electrónico"
                 />
               </div>
 
-              <div className="relative group">
-                <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-zinc-500 group-focus-within:text-cyan-400 transition-colors">
-                  <Lock className="h-5 w-5" />
+              {mode !== 'forgot_password' && (
+                <div className="relative group">
+                  <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-zinc-500 group-focus-within:text-cyan-400 transition-colors">
+                    <Lock className="h-5 w-5" />
+                  </div>
+                  <input
+                    type="password"
+                    required
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    className="block w-full pl-11 pr-4 py-3.5 bg-black/50 border border-white/10 rounded-xl text-white placeholder:text-zinc-600 focus:ring-2 focus:ring-cyan-500/50 focus:border-cyan-500 outline-none transition-all"
+                    placeholder="Contraseña de acceso"
+                  />
                 </div>
-                <input
-                  type="password"
-                  required
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  className="block w-full pl-11 pr-4 py-3.5 bg-black/50 border border-white/10 rounded-xl text-white placeholder:text-zinc-600 focus:ring-2 focus:ring-cyan-500/50 focus:border-cyan-500 outline-none transition-all"
-                  placeholder="Contraseña de acceso"
-                />
-              </div>
+              )}
             </div>
 
             <button
@@ -124,22 +145,40 @@ export default function LoginScreen({ initialError, onLoginSuccess, onBack, init
                 <Loader2 className="w-5 h-5 animate-spin" />
               ) : (
                 <>
-                  <span>{mode === 'login' ? 'Ingresar al Sistema' : 'Crear mi cuenta'}</span>
+                  <span>
+                    {mode === 'login' ? 'Ingresar al Sistema' : 
+                     mode === 'register' ? 'Crear mi cuenta' : 'Restablecer contraseña'}
+                  </span>
                   <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
                 </>
               )}
             </button>
             
-            <div className="text-center mt-4">
+            <div className="text-center mt-4 flex flex-col gap-2">
+              {mode !== 'forgot_password' && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setMode('forgot_password');
+                    setError(null);
+                    setSuccessMsg(null);
+                  }}
+                  className="text-xs text-zinc-500 hover:text-zinc-400 transition-colors bg-transparent border-none"
+                >
+                  ¿Olvidaste tu contraseña?
+                </button>
+              )}
+              
               <button
                 type="button"
                 onClick={() => {
-                  setMode(mode === 'login' ? 'register' : 'login');
+                  setMode(mode === 'login' || mode === 'forgot_password' ? 'register' : 'login');
                   setError(null);
+                  setSuccessMsg(null);
                 }}
-                className="text-sm text-cyan-400 hover:text-cyan-300 transition-colors bg-transparent border-none"
+                className="text-sm text-cyan-400 hover:text-cyan-300 transition-colors bg-transparent border-none mt-1"
               >
-                {mode === 'login' 
+                {mode === 'login' || mode === 'forgot_password'
                   ? '¿No tienes cuenta? Regístrate gratis' 
                   : '¿Ya tienes cuenta? Inicia sesión'}
               </button>

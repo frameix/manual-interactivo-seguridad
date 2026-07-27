@@ -328,6 +328,8 @@ export default function SuperAdminPanel({ isOpen, onClose }: SuperAdminPanelProp
                       <option value="teacher">Profesor</option>
                       <option value="superadmin">SuperAdmin</option>
                       <option value="guest">Invitado</option>
+                      <option value="alumno">Alumno (UNSM)</option>
+                      <option value="premium">Premium (SaaS)</option>
                     </select>
                     <button
                       type="submit"
@@ -364,9 +366,16 @@ export default function SuperAdminPanel({ isOpen, onClose }: SuperAdminPanelProp
                               <span className={`px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider rounded-full ${
                                 role === 'teacher' ? 'bg-indigo-100 text-indigo-700 dark:bg-indigo-900/40 dark:text-indigo-400' :
                                 role === 'superadmin' ? 'bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-400' :
-                                'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-400'
+                                role === 'guest' ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-400' :
+                                role === 'alumno' ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-400' :
+                                role === 'premium' ? 'bg-purple-100 text-purple-700 dark:bg-purple-900/40 dark:text-purple-400' :
+                                'bg-gray-100 text-gray-700 dark:bg-gray-900/40 dark:text-gray-400'
                               }`}>
-                                {role === 'teacher' ? 'Profesor' : role === 'superadmin' ? 'SuperAdmin' : 'Invitado'}
+                                {role === 'teacher' ? 'Profesor' : 
+                                 role === 'superadmin' ? 'SuperAdmin' : 
+                                 role === 'guest' ? 'Invitado' :
+                                 role === 'alumno' ? 'Alumno (UNSM)' :
+                                 role === 'premium' ? 'Premium (SaaS)' : 'Desconocido'}
                               </span>
                             </td>
                             <td className="px-5 py-3 text-right">

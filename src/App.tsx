@@ -24,7 +24,7 @@ import WelcomeScreen from "./components/WelcomeScreen";
 import FrameWatermark from "./components/FrameWatermark";
 import PaymentModal from "./components/PaymentModal";
 import { auth, db } from "./config/firebase";
-import { onAuthStateChanged, signOut, User } from "firebase/auth";
+import { onAuthStateChanged, signOut, User, sendEmailVerification } from "firebase/auth";
 import { ref, set, onValue, off, DatabaseReference } from "firebase/database";
 
 import {
@@ -332,14 +332,16 @@ export default function App() {
   const isTeacher = userRole === 'teacher' || user?.email === 'profesor@unsm.edu.pe';
   const isSuperAdmin = userRole === 'superadmin' || user?.email === 'manual-seguridad.web.stucco616@passinbox.com';
   const isGuest = userRole === 'guest' || user?.email === 'invitado@unsm.edu.pe';
-  const isUniversityStudent = user?.email?.endsWith('@unsm.edu.pe') && !isTeacher && !isGuest && !isSuperAdmin;
+  const isUniversityStudent = userRole === 'alumno' || (user?.email?.endsWith('@unsm.edu.pe') && !isTeacher && !isGuest && !isSuperAdmin);
   const isSaaSUser = user && !isTeacher && !isSuperAdmin && !isGuest && !isUniversityStudent;
+
+  const effectiveIsPremium = isPremium || userRole === 'premium';
 
   // Filter lessons based on visibility for students
   const visibleLessons = lessonsData.filter(l => {
     if (isTeacher || isSuperAdmin || isGuest) return true;
     if (isSaaSUser) {
-      if (isPremium) return true;
+      if (effectiveIsPremium) return true;
       // Freemium logic: sees 1, 2, 3 fully. Sees 4 as paywall. Cannot see > 4.
       return l.id <= 4;
     }
@@ -359,7 +361,7 @@ export default function App() {
   useEffect(() => {
     if (user && !isTeacher && !isSuperAdmin && !isGuest && isVisibilityLoaded) {
       if (isSaaSUser) {
-        if (!isPremium && selectedClassId > 4 && selectedClassId !== 0) {
+        if (!effectiveIsPremium && selectedClassId > 4 && selectedClassId !== 0) {
           setSelectedClassId(1);
         }
       } else {
@@ -371,7 +373,7 @@ export default function App() {
         }
       }
     }
-  }, [classVisibility, isTeacher, isSuperAdmin, isGuest, selectedClassId, isSaaSUser, isPremium, isVisibilityLoaded, user]);
+  }, [classVisibility, isTeacher, isSuperAdmin, isGuest, selectedClassId, isSaaSUser, effectiveIsPremium, isVisibilityLoaded, user]);
 
   // Completion percentage
   const totalActives = visibleLessons.length;
@@ -656,7 +658,38 @@ export default function App() {
                 </header>
 
                 {/* Active Lesson details main board */}
-                {selectedClassId === -1 ? (
+                {user && !user.emailVerified ? (
+                  <div className="flex-1 flex flex-col items-center justify-center p-8 text-center mt-20">
+                    <div className="w-24 h-24 bg-amber-50 dark:bg-amber-950/30 rounded-full flex items-center justify-center mb-6 border border-amber-400 dark:border-amber-900/40 shadow-[0_0_30px_rgba(251,191,36,0.15)]">
+                      <AlertTriangle className="w-10 h-10 text-amber-600 dark:text-amber-500" />
+                    </div>
+                    <h2 className="text-2xl font-bold text-slate-800 dark:text-white mb-3 tracking-wide">
+                      Verifica tu correo electrónico
+                    </h2>
+                    <p className="text-sm text-slate-700 dark:text-zinc-400 max-w-md mx-auto leading-relaxed mb-6">
+                      Hemos enviado un enlace de confirmación a <strong className="text-neutral-900 dark:text-zinc-200">{user.email}</strong>. Por favor revisa tu bandeja de entrada o carpeta de spam para activar tu cuenta.
+                    </p>
+                    <button
+                      onClick={async () => {
+                        try {
+                          await sendEmailVerification(user);
+                          alert("Correo de verificación reenviado exitosamente.");
+                        } catch (e: any) {
+                          alert("Por favor espera unos minutos antes de intentar reenviar.");
+                        }
+                      }}
+                      className="px-5 py-2.5 bg-cyan-600 hover:bg-cyan-700 text-white text-sm font-bold rounded-lg transition-colors"
+                    >
+                      Reenviar Correo
+                    </button>
+                    <button
+                      onClick={() => window.location.reload()}
+                      className="mt-4 text-xs font-bold text-neutral-500 hover:text-neutral-700 dark:text-zinc-500 dark:hover:text-zinc-300 transition-colors bg-transparent border-none"
+                    >
+                      Ya verifiqué mi cuenta (Recargar)
+                    </button>
+                  </div>
+                ) : selectedClassId === -1 ? (
                   <div className="flex-1 flex flex-col items-center justify-center p-8 text-center mt-20">
                     <div className="w-24 h-24 bg-cyan-50 dark:bg-cyan-950/30 rounded-full flex items-center justify-center mb-6 border border-cyan-400 dark:border-cyan-900/40 shadow-[0_0_30px_rgba(6,182,212,0.15)]">
                       <BookOpen className="w-10 h-10 text-cyan-600 dark:text-cyan-500" />
@@ -777,8 +810,8 @@ export default function App() {
                       </div>
                     </div>
 
-                    {/* Dynamic rendering depending on selected Tab */}
-                    {isSaaSUser && !isPremium && activeLesson.id === 4 ? (
+                    {/* Paywall overlay if Freemium trying to access class > 3 */}
+                    {isSaaSUser && !effectiveIsPremium && activeLesson.id > 3 && (activeLesson.id !== 13) ? (
                       <div className="relative overflow-hidden rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-white/50 dark:bg-zinc-900/50 p-8 sm:p-12 backdrop-blur-sm text-center flex flex-col items-center justify-center min-h-[400px] mt-6">
                         <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-[0.03] dark:opacity-[0.05]" />
                         <div className="bg-indigo-100 dark:bg-indigo-500/10 p-4 rounded-2xl mb-6 shadow-sm border border-indigo-200 dark:border-indigo-500/20">
