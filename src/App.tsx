@@ -22,6 +22,7 @@ import TeacherAdminPanel from "./components/TeacherAdminPanel";
 import SuperAdminPanel from "./components/SuperAdminPanel";
 import WelcomeScreen from "./components/WelcomeScreen";
 import FrameWatermark from "./components/FrameWatermark";
+import { UserSettingsModal } from "./components/UserSettingsModal";
 import PaymentModal from "./components/PaymentModal";
 import { auth, db } from "./config/firebase";
 import { onAuthStateChanged, signOut, User, sendEmailVerification } from "firebase/auth";
@@ -132,13 +133,14 @@ export default function App() {
   const [isAdminPanelOpen, setIsAdminPanelOpen] = useState(false);
   const [isSuperAdminPanelOpen, setIsSuperAdminPanelOpen] = useState(false);
   const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
+  const [isUserSettingsOpen, setIsUserSettingsOpen] = useState(false);
   const [classVisibility, setClassVisibility] = useState<Record<number, boolean>>({});
   const [isVisibilityLoaded, setIsVisibilityLoaded] = useState(false);
   const [userRoles, setUserRoles] = useState<Record<string, string>>({});
 
   // Prevent body scroll when any modal/floating window is open
   useEffect(() => {
-    if (isGlossaryOpen || isGuideOpen || isAdminPanelOpen || isSuperAdminPanelOpen || isPaymentModalOpen || isMobileSidebarOpen) {
+    if (isGlossaryOpen || isGuideOpen || isAdminPanelOpen || isSuperAdminPanelOpen || isPaymentModalOpen || isMobileSidebarOpen || isUserSettingsOpen) {
       document.body.style.overflow = 'hidden';
     } else {
       document.body.style.overflow = 'unset';
@@ -146,7 +148,7 @@ export default function App() {
     return () => {
       document.body.style.overflow = 'unset';
     };
-  }, [isGlossaryOpen, isGuideOpen, isAdminPanelOpen, isSuperAdminPanelOpen, isPaymentModalOpen, isMobileSidebarOpen]);
+  }, [isGlossaryOpen, isGuideOpen, isAdminPanelOpen, isSuperAdminPanelOpen, isPaymentModalOpen, isMobileSidebarOpen, isUserSettingsOpen]);
 
   // Auto-scroll exclusivo para la barra móvil (solo existe en el DOM cuando se abre)
   useEffect(() => {
@@ -675,6 +677,14 @@ export default function App() {
                         <span>Control</span>
                       </button>
                     )}
+                    <button
+                      onClick={() => setIsUserSettingsOpen(true)}
+                      className="hidden md:flex flex-wrap p-2 px-3.5 bg-neutral-100 dark:bg-zinc-900/50 border border-neutral-300 dark:border-zinc-700/50 rounded-full text-neutral-700 dark:text-zinc-400 hover:bg-neutral-200 dark:hover:bg-zinc-800 cursor-pointer transition-colors text-[10px] font-bold tracking-widest uppercase items-center gap-1.5"
+                      title="Configuración de Cuenta"
+                    >
+                      <Settings className="h-3.5 w-3.5" />
+                      <span>Config</span>
+                    </button>
                     <button
                       onClick={() => signOut(auth)}
                       className="hidden md:flex flex-wrap p-2 px-3.5 bg-red-50 dark:bg-red-950/20 border border-red-400 dark:border-red-900/40 rounded-full text-red-600 dark:text-red-400 hover:bg-red-100 dark:hover:bg-red-50 dark:bg-red-950/30 cursor-pointer transition-colors text-[10px] font-bold tracking-widest uppercase items-center gap-1.5"
@@ -1349,7 +1359,12 @@ export default function App() {
       {isSuperAdmin && isSuperAdminPanelOpen && (
         <SuperAdminPanel isOpen={isSuperAdminPanelOpen} onClose={() => setIsSuperAdminPanelOpen(false)} />
       )}
-
+      <UserSettingsModal 
+        isOpen={isUserSettingsOpen} 
+        onClose={() => setIsUserSettingsOpen(false)} 
+        user={user} 
+        darkMode={darkMode} 
+      />
       {isPaymentModalOpen && user && (
         <PaymentModal 
           onClose={() => setIsPaymentModalOpen(false)} 
