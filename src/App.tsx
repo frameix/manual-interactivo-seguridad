@@ -19,6 +19,7 @@ import { SetupGuideModal } from "./components/SetupGuideModal";
 import LoginScreen from "./components/LoginScreen";
 import LandingPage from "./components/LandingPage";
 import TeacherAdminPanel from "./components/TeacherAdminPanel";
+import SuperAdminPanel from "./components/SuperAdminPanel";
 import WelcomeScreen from "./components/WelcomeScreen";
 import FrameWatermark from "./components/FrameWatermark";
 import PaymentModal from "./components/PaymentModal";
@@ -128,13 +129,14 @@ export default function App() {
   const [isGlossaryOpen, setIsGlossaryOpen] = useState(false);
   const [isGuideOpen, setIsGuideOpen] = useState(false);
   const [isAdminPanelOpen, setIsAdminPanelOpen] = useState(false);
+  const [isSuperAdminPanelOpen, setIsSuperAdminPanelOpen] = useState(false);
   const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
   const [classVisibility, setClassVisibility] = useState<Record<number, boolean>>({});
   const [isVisibilityLoaded, setIsVisibilityLoaded] = useState(false);
 
   // Prevent body scroll when any modal/floating window is open
   useEffect(() => {
-    if (isGlossaryOpen || isGuideOpen || isAdminPanelOpen || isPaymentModalOpen || isMobileSidebarOpen) {
+    if (isGlossaryOpen || isGuideOpen || isAdminPanelOpen || isSuperAdminPanelOpen || isPaymentModalOpen || isMobileSidebarOpen) {
       document.body.style.overflow = 'hidden';
     } else {
       document.body.style.overflow = 'unset';
@@ -142,7 +144,7 @@ export default function App() {
     return () => {
       document.body.style.overflow = 'unset';
     };
-  }, [isGlossaryOpen, isGuideOpen, isAdminPanelOpen, isPaymentModalOpen, isMobileSidebarOpen]);
+  }, [isGlossaryOpen, isGuideOpen, isAdminPanelOpen, isSuperAdminPanelOpen, isPaymentModalOpen, isMobileSidebarOpen]);
 
   // Auto-scroll exclusivo para la barra móvil (solo existe en el DOM cuando se abre)
   useEffect(() => {
@@ -311,9 +313,10 @@ export default function App() {
   const activeLesson = lessonsData.find((l) => l.id === selectedClassId) || lessonsData[1];
 
   const isTeacher = user?.email === 'profesor@unsm.edu.pe';
+  const isSuperAdmin = user?.email === 'superadmin@ciberactiva.com';
   const isGuest = user?.email === 'invitado@unsm.edu.pe';
   const isUniversityStudent = user?.email?.endsWith('@unsm.edu.pe') && !isTeacher && !isGuest;
-  const isSaaSUser = user && !isTeacher && !isGuest && !isUniversityStudent;
+  const isSaaSUser = user && !isTeacher && !isSuperAdmin && !isGuest && !isUniversityStudent;
 
   // Filter lessons based on visibility for students
   const visibleLessons = lessonsData.filter(l => {
@@ -604,6 +607,16 @@ export default function App() {
 
                   {/* Right Header Buttons */}
                   <div className="flex flex-wrap items-center gap-2">
+                    {isSuperAdmin && (
+                      <button
+                        onClick={() => setIsSuperAdminPanelOpen(true)}
+                        className="hidden md:flex flex-wrap p-2 px-3.5 bg-amber-50 dark:bg-amber-950/30 border border-amber-400 dark:border-amber-900/40 rounded-full text-amber-600 dark:text-amber-400 hover:bg-amber-100 dark:hover:bg-amber-50 dark:bg-amber-950/30 cursor-pointer transition-colors text-[10px] font-bold tracking-widest uppercase items-center gap-1.5"
+                        title="Finanzas y Pagos (Super Admin)"
+                      >
+                        <Settings className="h-3.5 w-3.5" />
+                        <span>SuperAdmin</span>
+                      </button>
+                    )}
                     {isTeacher && (
                       <button
                         onClick={() => setIsAdminPanelOpen(true)}
@@ -1252,7 +1265,10 @@ export default function App() {
       <GlossaryModal isOpen={isGlossaryOpen} onClose={() => setIsGlossaryOpen(false)} />
       <SetupGuideModal isOpen={isGuideOpen} onClose={() => setIsGuideOpen(false)} darkMode={darkMode} />
       {isTeacher && isAdminPanelOpen && (
-        <TeacherAdminPanel onClose={() => setIsAdminPanelOpen(false)} />
+        <TeacherAdminPanel isOpen={isAdminPanelOpen} onClose={() => setIsAdminPanelOpen(false)} />
+      )}
+      {isSuperAdmin && isSuperAdminPanelOpen && (
+        <SuperAdminPanel isOpen={isSuperAdminPanelOpen} onClose={() => setIsSuperAdminPanelOpen(false)} />
       )}
 
       {isPaymentModalOpen && user && (

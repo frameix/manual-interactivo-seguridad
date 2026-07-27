@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Shield, X, Eye, EyeOff, Loader2, BookMarked, Edit2, Save, Lock, Layout, Search, Check, RefreshCw, Pencil, Trash, AlertTriangle, Info, DollarSign, CheckCircle } from 'lucide-react';
+import { Shield, X, Eye, EyeOff, Loader2, BookMarked, Edit2, Save, Lock, Layout, Search, Check, RefreshCw, Pencil, Trash, AlertTriangle, Info } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { db } from '../config/firebase';
 import { ref, onValue, set, update } from 'firebase/database';
@@ -13,7 +13,7 @@ interface TeacherAdminPanelProps {
 export default function TeacherAdminPanel({ isOpen, onClose }: TeacherAdminPanelProps) {
   const [visibilityData, setVisibilityData] = useState<Record<number, boolean>>({});
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState<'visibility' | 'grades' | 'saas'>('visibility');
+  const [activeTab, setActiveTab] = useState<'visibility' | 'grades'>('visibility');
 
   // Gradebook State
   interface Calificacion {
@@ -100,77 +100,6 @@ export default function TeacherAdminPanel({ isOpen, onClose }: TeacherAdminPanel
     } catch (error) {
       console.error("Error al actualizar visibilidad masiva:", error);
     }
-  };
-
-  // Payment Requests State
-  interface PaymentRequest {
-    uid: string;
-    email: string;
-    transactionId: string;
-    message: string;
-    method: string;
-    status: string;
-    timestamp: number;
-  }
-  const [paymentRequests, setPaymentRequests] = useState<PaymentRequest[]>([]);
-  const [paymentsLoading, setPaymentsLoading] = useState(false);
-
-  // Fetch Payment Requests when activeTab is 'saas'
-  useEffect(() => {
-    if (!isOpen || activeTab !== 'saas') return;
-    
-    setPaymentsLoading(true);
-    const paymentsRef = ref(db, 'paymentRequests');
-    const unsubscribe = onValue(paymentsRef, (snapshot) => {
-      const data = snapshot.val() || {};
-      const requestsArray: PaymentRequest[] = Object.keys(data).map(key => ({
-        uid: key,
-        ...data[key]
-      })).sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
-      
-      setPaymentRequests(requestsArray);
-      setPaymentsLoading(false);
-    }, (error) => {
-      console.error("Firebase onValue error payments:", error);
-      setPaymentsLoading(false);
-    });
-
-    return () => unsubscribe();
-  }, [isOpen, activeTab]);
-
-  const handleApprovePayment = async (uid: string) => {
-    setConfirmDialog({
-      isOpen: true,
-      type: 'info',
-      title: 'Aprobar Pago',
-      message: `¿Confirmas que el pago es válido? Esto otorgará acceso Premium inmediatamente al usuario.`,
-      onConfirm: async () => {
-        try {
-          await update(ref(db), {
-            [`users/${uid}/isPremium`]: true,
-            [`paymentRequests/${uid}/status`]: 'approved',
-          });
-        } catch (e) {
-          console.error(e);
-        }
-      }
-    });
-  };
-
-  const handleRejectPayment = async (uid: string) => {
-    setConfirmDialog({
-      isOpen: true,
-      type: 'danger',
-      title: 'Rechazar Pago',
-      message: `¿Estás seguro de rechazar este pago? El usuario verá que su número de operación fue rechazado.`,
-      onConfirm: async () => {
-        try {
-          await set(ref(db, `paymentRequests/${uid}/status`), 'rejected');
-        } catch (e) {
-          console.error(e);
-        }
-      }
-    });
   };
 
   // Fetch Grades when activeTab is 'grades'
@@ -335,15 +264,6 @@ export default function TeacherAdminPanel({ isOpen, onClose }: TeacherAdminPanel
               >
                 <BookMarked className="w-4 h-4" />
                 Libreta de Notas
-              </button>
-              <button
-                onClick={() => setActiveTab('saas')}
-                className={`py-3 text-xs font-bold tracking-widest uppercase transition-colors flex items-center gap-2 border-b-2 ${
-                  activeTab === 'saas' ? 'border-amber-500 text-amber-600 dark:text-amber-400' : 'border-transparent text-neutral-500 hover:text-neutral-900 dark:text-zinc-500 dark:hover:text-zinc-300'
-                }`}
-              >
-                <DollarSign className="w-4 h-4" />
-                SaaS & Pagos
               </button>
             </div>
           </div>
@@ -577,96 +497,6 @@ export default function TeacherAdminPanel({ isOpen, onClose }: TeacherAdminPanel
                         </div>
                       );
                     })}
-                  </div>
-                )}
-              </motion.div>
-            )}
-
-            {activeTab === 'saas' && (
-              <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-6">
-                <div className="bg-amber-50 dark:bg-amber-950/30 border border-amber-400 dark:border-amber-900/40 rounded-xl p-4 flex gap-3">
-                  <Info className="w-5 h-5 text-amber-500 shrink-0 mt-0.5" />
-                  <p className="text-xs text-amber-800 dark:text-amber-300 leading-relaxed">
-                    Aquí aparecerán las solicitudes de pago de los usuarios Freemium. Revisa tu Yape, Plin o PayPal usando el <strong>Número de Operación</strong>. Al darle Aprobar, el sistema les dará acceso inmediato a todas las clases y simuladores.
-                  </p>
-                </div>
-
-                {paymentsLoading ? (
-                  <div className="flex flex-col items-center justify-center py-12 gap-3 text-neutral-500 dark:text-zinc-500">
-                    <Loader2 className="w-8 h-8 animate-spin text-amber-500" />
-                    <p className="text-sm font-medium">Cargando pagos...</p>
-                  </div>
-                ) : paymentRequests.length === 0 ? (
-                  <div className="text-center py-12 border-2 border-dashed border-neutral-300 dark:border-neutral-800 rounded-2xl bg-neutral-100/50 dark:bg-[#121214]/50">
-                    <p className="text-sm text-neutral-500 dark:text-zinc-500 font-medium">No hay pagos registrados.</p>
-                  </div>
-                ) : (
-                  <div className="space-y-4">
-                    {paymentRequests.map((req) => (
-                      <div key={req.uid} className={`bg-white dark:bg-[#18181b] border rounded-xl p-5 overflow-hidden relative shadow-sm ${
-                        req.status === 'pending' ? 'border-amber-300 dark:border-amber-500/30' :
-                        req.status === 'approved' ? 'border-emerald-300 dark:border-emerald-500/30' :
-                        'border-red-300 dark:border-red-500/30'
-                      }`}>
-                        <div className={`absolute left-0 top-0 bottom-0 w-1 ${
-                          req.status === 'pending' ? 'bg-amber-400 dark:bg-amber-500' :
-                          req.status === 'approved' ? 'bg-emerald-400 dark:bg-emerald-500' :
-                          'bg-red-400 dark:bg-red-500'
-                        }`} />
-
-                        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pl-2">
-                          <div>
-                            <div className="flex items-center gap-2 mb-1">
-                              <span className="text-sm font-bold text-neutral-900 dark:text-white">
-                                {req.email}
-                              </span>
-                              <span className={`px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider rounded ${
-                                req.status === 'pending' ? 'bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-400' :
-                                req.status === 'approved' ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-400' :
-                                'bg-red-100 text-red-700 dark:bg-red-900/40 dark:text-red-400'
-                              }`}>
-                                {req.status === 'pending' ? 'PENDIENTE' : req.status === 'approved' ? 'APROBADO' : 'RECHAZADO'}
-                              </span>
-                            </div>
-                            <div className="flex flex-col sm:flex-row gap-x-6 gap-y-1 mt-2 text-xs text-neutral-600 dark:text-zinc-400 font-mono">
-                              <div>
-                                <span className="font-bold text-neutral-500">Operación:</span> <span className="text-neutral-900 dark:text-white font-bold">{req.transactionId}</span>
-                              </div>
-                              <div>
-                                <span className="font-bold text-neutral-500">Método:</span> {req.method.toUpperCase()}
-                              </div>
-                              <div>
-                                <span className="font-bold text-neutral-500">Fecha:</span> {new Date(req.timestamp).toLocaleString()}
-                              </div>
-                            </div>
-                            {req.message && (
-                              <p className="mt-3 text-xs text-neutral-500 dark:text-zinc-400 bg-neutral-50 dark:bg-[#0c0c0e] p-2 rounded border border-neutral-200 dark:border-zinc-800 italic">
-                                "{req.message}"
-                              </p>
-                            )}
-                          </div>
-                          
-                          {req.status === 'pending' && (
-                            <div className="flex gap-2 self-start md:self-center">
-                              <button
-                                onClick={() => handleApprovePayment(req.uid)}
-                                className="px-4 py-2 bg-emerald-50 hover:bg-emerald-100 dark:bg-emerald-900/20 dark:hover:bg-emerald-900/40 text-emerald-600 dark:text-emerald-400 text-xs font-bold uppercase tracking-widest rounded-lg border border-emerald-200 dark:border-emerald-800 transition-colors flex items-center gap-1.5"
-                              >
-                                <CheckCircle className="w-4 h-4" />
-                                Aprobar
-                              </button>
-                              <button
-                                onClick={() => handleRejectPayment(req.uid)}
-                                className="px-4 py-2 bg-red-50 hover:bg-red-100 dark:bg-red-900/20 dark:hover:bg-red-900/40 text-red-600 dark:text-red-400 text-xs font-bold uppercase tracking-widest rounded-lg border border-red-200 dark:border-red-800 transition-colors flex items-center gap-1.5"
-                              >
-                                <X className="w-4 h-4" />
-                                Rechazar
-                              </button>
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                    ))}
                   </div>
                 )}
               </motion.div>
