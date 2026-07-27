@@ -117,8 +117,16 @@ export default function PaymentModal({ onClose, uid, email }: PaymentModalProps)
                 <p className="text-sm font-bold text-neutral-800 dark:text-zinc-200">1. Realiza el pago a:</p>
                 
                 {activeTab === 'yape' ? (
-                  <div className="flex flex-col gap-2 p-3 bg-neutral-50 dark:bg-zinc-800/50 rounded-lg border border-neutral-200 dark:border-zinc-700/50">
-                    <div className="flex justify-between items-center">
+                  <div className="flex flex-col gap-3 p-4 bg-neutral-50 dark:bg-zinc-800/50 rounded-lg border border-neutral-200 dark:border-zinc-700/50">
+                    <div className="flex flex-col items-center justify-center pb-3 border-b border-neutral-200 dark:border-zinc-700/50">
+                      {/* Espacio para el QR - El usuario subirá su imagen */}
+                      <div className="w-32 h-32 bg-white rounded-xl border-2 border-dashed border-neutral-300 dark:border-zinc-600 flex items-center justify-center mb-2 overflow-hidden">
+                        <span className="text-xs text-neutral-400 text-center px-2">Tu código QR irá aquí</span>
+                        {/* <img src="/tu-qr.png" alt="QR Yape" className="w-full h-full object-cover" /> */}
+                      </div>
+                      <span className="text-xs font-bold text-neutral-500 dark:text-zinc-400 uppercase tracking-wider">Escanea para pagar</span>
+                    </div>
+                    <div className="flex justify-between items-center mt-1">
                       <span className="text-xs text-neutral-500 dark:text-zinc-400">Número Yape / Plin</span>
                       <span className="text-sm font-mono font-bold text-neutral-900 dark:text-white">999 999 999</span>
                     </div>
