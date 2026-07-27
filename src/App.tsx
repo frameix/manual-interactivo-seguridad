@@ -179,46 +179,39 @@ export default function App() {
           lastLogin: Date.now()
         }).catch(console.error);
 
-        // Update presence
-        sessionRef = ref(db, `activeSessions/${currentUser.uid}`);
-        set(sessionRef, {
-          email: currentUser.email,
-          timestamp: Date.now()
-        }).catch(console.error);
+        // Enforce Single Session (Anti-Account Sharing) for ALL users
+        try {
+          const sessionId = crypto.randomUUID();
+          sessionRef = ref(db, `activeSessions/${currentUser.uid}`);
+          
+          // 1. Escribimos nuestra propia ID de sesión
+          set(sessionRef, {
+            email: currentUser.email,
+            timestamp: Date.now(),
+            sessionId: sessionId
+          }).then(() => {
+            // 2. Escuchamos si otro dispositivo sobrescribe la sesión
+            unsubscribeDb = onValue(sessionRef, (snapshot) => {
+              const val = snapshot.val();
+              if (val && val.sessionId && val.sessionId !== sessionId) {
+                signOut(auth);
+                setSessionError("Sesión finalizada: Alguien más ha iniciado sesión con tu cuenta en otro dispositivo. El uso compartido de cuentas no está permitido.");
+              }
+            });
+          });
+        } catch (e) {
+          console.error("Error en lógica de sesión", e);
+        }
       } else {
         setUser(null);
         if (sessionRef) {
           set(sessionRef, null).catch(console.error);
           sessionRef = null;
+          if (unsubscribeDb) {
+            unsubscribeDb();
+            unsubscribeDb = null;
+          }
         }
-      }
-
-      if (currentUser?.email === 'profesor@unsm.edu.pe') {
-        try {
-          const sessionId = crypto.randomUUID();
-          sessionRef = ref(db, 'sessions/teacher');
-
-          // Guardamos la sesión y SÓLO escuchamos después de confirmar que se guardó.
-          // Así evitamos el 'suicidio' de sesión si leemos el ID viejo antes de escribir el nuestro.
-          set(sessionRef, sessionId).then(() => {
-            unsubscribeDb = onValue(sessionRef, (snapshot) => {
-              const val = snapshot.val();
-              if (val && val !== sessionId) {
-                signOut(auth);
-                setSessionError("Sesión maestra finalizada: Alguien más ha iniciado sesión con esta cuenta en otro dispositivo.");
-              }
-            }, (error) => {
-              console.error("Error al escuchar sesión:", error);
-            });
-          }).catch((dbError) => {
-            console.error("Error silencioso de base de datos al registrar sesión:", dbError);
-          });
-        } catch (dbError) {
-          console.error("Error al registrar la sesión en la base de datos:", dbError);
-          // Aún así permitimos que cargue la app si la base de datos falla
-        }
-      } else {
-        if (sessionRef) off(sessionRef);
       }
 
       setAuthLoading(false);
