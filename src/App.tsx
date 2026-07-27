@@ -333,10 +333,8 @@ export default function App() {
   const isSuperAdmin = userRole === 'superadmin' || user?.email === 'manual-seguridad.web.stucco616@passinbox.com';
   const isGuest = userRole === 'guest' || user?.email === 'invitado@unsm.edu.pe';
   const isUniversityStudent = userRole === 'alumno' || (user?.email?.endsWith('@unsm.edu.pe') && !isTeacher && !isGuest && !isSuperAdmin);
-  const isSaaSUser = user && !isTeacher && !isSuperAdmin && !isGuest && !isUniversityStudent;
-
-  const effectiveIsPremium = isPremium || userRole === 'premium';
-
+  const isSaaSUser = userRole === 'freemium' || (user && !isTeacher && !isSuperAdmin && !isGuest && !isUniversityStudent);
+  const effectiveIsPremium = userRole === 'premium' || (isPremium && userRole !== 'freemium');
   // Filter lessons based on visibility for students
   const visibleLessons = lessonsData.filter(l => {
     if (isTeacher || isSuperAdmin || isGuest) return true;

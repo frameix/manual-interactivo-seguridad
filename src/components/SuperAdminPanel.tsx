@@ -329,6 +329,7 @@ export default function SuperAdminPanel({ isOpen, onClose }: SuperAdminPanelProp
                       <option value="superadmin">SuperAdmin</option>
                       <option value="guest">Invitado</option>
                       <option value="alumno">Alumno (UNSM)</option>
+                      <option value="freemium">Freemium (3 Clases)</option>
                       <option value="premium">Premium (SaaS)</option>
                     </select>
                     <button
@@ -368,6 +369,7 @@ export default function SuperAdminPanel({ isOpen, onClose }: SuperAdminPanelProp
                                 role === 'superadmin' ? 'bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-400' :
                                 role === 'guest' ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-400' :
                                 role === 'alumno' ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-400' :
+                                role === 'freemium' ? 'bg-slate-100 text-slate-700 dark:bg-slate-900/40 dark:text-slate-400' :
                                 role === 'premium' ? 'bg-purple-100 text-purple-700 dark:bg-purple-900/40 dark:text-purple-400' :
                                 'bg-gray-100 text-gray-700 dark:bg-gray-900/40 dark:text-gray-400'
                               }`}>
@@ -375,6 +377,7 @@ export default function SuperAdminPanel({ isOpen, onClose }: SuperAdminPanelProp
                                  role === 'superadmin' ? 'SuperAdmin' : 
                                  role === 'guest' ? 'Invitado' :
                                  role === 'alumno' ? 'Alumno (UNSM)' :
+                                 role === 'freemium' ? 'Freemium (3 Clases)' :
                                  role === 'premium' ? 'Premium (SaaS)' : 'Desconocido'}
                               </span>
                             </td>
