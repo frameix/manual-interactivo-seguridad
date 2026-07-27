@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from 'motion/react';
 import { db, auth } from '../config/firebase';
 import { ref, onValue, set, update, remove } from 'firebase/database';
 import { lessonsData } from '../data/lessons';
-import * as XLSX from 'xlsx';
+import * as XLSX from 'xlsx-js-style';
 
 interface TeacherAdminPanelProps {
   isOpen: boolean;
@@ -347,9 +347,66 @@ export default function TeacherAdminPanel({ isOpen, onClose }: TeacherAdminPanel
       { wch: 40 }, // Módulo
       { wch: 10 }, // Nota
       { wch: 15 }, // Nota Máxima
-      { wch: 15 }  // Fecha
+      { wch: 20 }  // Fecha
     ];
     worksheet['!cols'] = wscols;
+
+    // Aplicar estilos a las celdas
+    const range = XLSX.utils.decode_range(worksheet['!ref'] || "A1:E1");
+    
+    for (let R = range.s.r; R <= range.e.r; ++R) {
+      for (let C = range.s.c; C <= range.e.c; ++C) {
+        const address = XLSX.utils.encode_cell({ r: R, c: C });
+        if (!worksheet[address]) continue;
+        
+        // Inicializar objeto de estilo si no existe
+        if (!worksheet[address].s) worksheet[address].s = {};
+        
+        // Estilos para la cabecera (Fila 0)
+        if (R === 0) {
+          worksheet[address].s = {
+            font: { bold: true, color: { rgb: "FFFFFF" } },
+            fill: { fgColor: { rgb: "4F46E5" } }, // Color Indigo 600
+            alignment: { horizontal: "center", vertical: "center" },
+            border: {
+              top: { style: "thin", color: { rgb: "000000" } },
+              bottom: { style: "thin", color: { rgb: "000000" } },
+              left: { style: "thin", color: { rgb: "000000" } },
+              right: { style: "thin", color: { rgb: "000000" } }
+            }
+          };
+        } else {
+          // Estilos para filas de datos
+          
+          // Bordes ligeros para todas las celdas
+          worksheet[address].s.border = {
+            top: { style: "hair", color: { rgb: "D4D4D8" } },
+            bottom: { style: "hair", color: { rgb: "D4D4D8" } },
+            left: { style: "hair", color: { rgb: "D4D4D8" } },
+            right: { style: "hair", color: { rgb: "D4D4D8" } }
+          };
+
+          // Centrar las columnas numéricas y fechas (Nota, Nota Máxima, Fecha)
+          if (C >= 2) {
+            worksheet[address].s.alignment = { horizontal: "center" };
+          }
+          
+          // Colorear condicionalmente la Nota (Columna C, índice 2)
+          if (C === 2 && worksheet[address].v !== undefined) {
+             const nota = worksheet[address].v;
+             if (typeof nota === 'number') {
+                if (nota >= 14) {
+                   worksheet[address].s.font = { color: { rgb: "16A34A" }, bold: true }; // Verde
+                } else if (nota >= 11) {
+                   worksheet[address].s.font = { color: { rgb: "D97706" }, bold: true }; // Naranja
+                } else {
+                   worksheet[address].s.font = { color: { rgb: "DC2626" }, bold: true }; // Rojo
+                }
+             }
+          }
+        }
+      }
+    }
 
     const workbook = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(workbook, worksheet, "Calificaciones");
