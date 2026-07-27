@@ -313,14 +313,14 @@ export default function App() {
   const activeLesson = lessonsData.find((l) => l.id === selectedClassId) || lessonsData[1];
 
   const isTeacher = user?.email === 'profesor@unsm.edu.pe';
-  const isSuperAdmin = user?.email === 'superadmin@ciberactiva.com';
+  const isSuperAdmin = user?.email === 'manual-seguridad.web.stucco616@passinbox.com';
   const isGuest = user?.email === 'invitado@unsm.edu.pe';
   const isUniversityStudent = user?.email?.endsWith('@unsm.edu.pe') && !isTeacher && !isGuest;
   const isSaaSUser = user && !isTeacher && !isSuperAdmin && !isGuest && !isUniversityStudent;
 
   // Filter lessons based on visibility for students
   const visibleLessons = lessonsData.filter(l => {
-    if (isTeacher || isGuest) return true;
+    if (isTeacher || isSuperAdmin || isGuest) return true;
     if (isSaaSUser) {
       if (isPremium) return true;
       // Freemium logic: sees 1, 2, 3 fully. Sees 4 as paywall. Cannot see > 4.
@@ -340,7 +340,7 @@ export default function App() {
 
   // Kick student out of hidden class
   useEffect(() => {
-    if (user && !isTeacher && !isGuest && isVisibilityLoaded) {
+    if (user && !isTeacher && !isSuperAdmin && !isGuest && isVisibilityLoaded) {
       if (isSaaSUser) {
         if (!isPremium && selectedClassId > 4 && selectedClassId !== 0) {
           setSelectedClassId(1);
@@ -354,7 +354,7 @@ export default function App() {
         }
       }
     }
-  }, [classVisibility, isTeacher, isGuest, selectedClassId, isSaaSUser, isPremium, isVisibilityLoaded, user]);
+  }, [classVisibility, isTeacher, isSuperAdmin, isGuest, selectedClassId, isSaaSUser, isPremium, isVisibilityLoaded, user]);
 
   // Completion percentage
   const totalActives = visibleLessons.length;
