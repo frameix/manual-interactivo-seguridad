@@ -171,13 +171,19 @@ export default function App() {
     const unsubscribeAuth = onAuthStateChanged(auth, async (currentUser) => {
       if (currentUser) {
         setUser(currentUser);
-        
-        // Record user to database for SuperAdmin visibility
-        const userRef = ref(db, `users/${currentUser.uid}`);
-        update(userRef, {
-          email: currentUser.email,
-          lastLogin: Date.now()
-        }).catch(console.error);
+        // Solo registrar en la base de datos a los usuarios que ya verificaron su correo
+        // o a las cuentas maestras de prueba, para no ensuciar la base de datos con cuentas falsas/bots.
+        const isMasterAccount = currentUser.email === 'profesor@unsm.edu.pe' || 
+                                currentUser.email === 'invitado@unsm.edu.pe' || 
+                                currentUser.email === 'manual-seguridad.web.stucco616@passinbox.com';
+                                
+        if (currentUser.emailVerified || isMasterAccount) {
+          const userRef = ref(db, `users/${currentUser.uid}`);
+          update(userRef, {
+            email: currentUser.email,
+            lastLogin: Date.now()
+          }).catch(console.error);
+        }
 
         // Enforce Single Session (Anti-Account Sharing) for ALL users
         try {
