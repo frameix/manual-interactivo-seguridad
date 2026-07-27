@@ -24,7 +24,7 @@ export default function LandingPage({ onLoginClick, onRegisterClick }: LandingPa
             <div className="bg-indigo-600 p-2 rounded-lg">
               <ShieldCheck className="h-6 w-6 text-white" />
             </div>
-            <span className="font-black text-xl tracking-tight text-slate-800 dark:text-white">Frame<span className="text-indigo-600 dark:text-indigo-500">Sec</span></span>
+            <span className="font-black text-xl tracking-tight text-slate-800 dark:text-white">Ciber<span className="text-indigo-600 dark:text-indigo-500">Activa</span></span>
           </div>
           <button 
             onClick={onLoginClick}
@@ -115,7 +115,7 @@ export default function LandingPage({ onLoginClick, onRegisterClick }: LandingPa
 
       {/* Minimal Footer */}
       <footer className="border-t border-slate-200 dark:border-zinc-800/50 py-8 relative z-10 text-center text-slate-500 dark:text-zinc-500 text-sm">
-        <p>© {new Date().getFullYear()} Creado por Marco A. Pacheco (FRAME).</p>
+        <p>© {new Date().getFullYear()} Creado por FRAME.</p>
       </footer>
     </div>
   );
