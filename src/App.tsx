@@ -373,6 +373,38 @@ export default function App() {
     }
   }, [user, isSuperAdmin, selectedClassId]);
 
+  // Check for unread alerts (Security Logs & Pending Payments) for SuperAdmin
+  const [hasUnreadAdminAlerts, setHasUnreadAdminAlerts] = useState(false);
+  useEffect(() => {
+    if (isSuperAdmin) {
+      let hasLogs = false;
+      let hasPayments = false;
+
+      const logsRef = ref(db, 'securityLogs');
+      const unsubLogs = onValue(logsRef, (snap) => {
+        hasLogs = snap.exists() && Object.keys(snap.val()).length > 0;
+        setHasUnreadAdminAlerts(hasLogs || hasPayments);
+      });
+
+      const paymentsRef = ref(db, 'paymentRequests');
+      const unsubPayments = onValue(paymentsRef, (snap) => {
+        hasPayments = false;
+        if (snap.exists()) {
+          const data = snap.val();
+          hasPayments = Object.values(data).some((p: any) => p.status === 'pending');
+        }
+        setHasUnreadAdminAlerts(hasLogs || hasPayments);
+      });
+
+      return () => {
+        unsubLogs();
+        unsubPayments();
+      };
+    } else {
+      setHasUnreadAdminAlerts(false);
+    }
+  }, [isSuperAdmin]);
+
   // Filter lessons based on visibility for students
   const visibleLessons = lessonsData.filter(l => {
     if (isTeacher || isSuperAdmin || isGuest) return true;
@@ -665,9 +697,15 @@ export default function App() {
                     {isSuperAdmin && (
                       <button
                         onClick={() => setIsSuperAdminPanelOpen(true)}
-                        className="hidden md:flex flex-wrap p-2 px-3.5 bg-amber-50 dark:bg-amber-950/30 border border-amber-400 dark:border-amber-900/40 rounded-full text-amber-600 dark:text-amber-400 hover:bg-amber-100 dark:hover:bg-amber-50 dark:bg-amber-950/30 cursor-pointer transition-colors text-[10px] font-bold tracking-widest uppercase items-center gap-1.5"
+                        className="relative hidden md:flex flex-wrap p-2 px-3.5 bg-amber-50 dark:bg-amber-950/30 border border-amber-400 dark:border-amber-900/40 rounded-full text-amber-600 dark:text-amber-400 hover:bg-amber-100 dark:hover:bg-amber-50 dark:bg-amber-950/30 cursor-pointer transition-colors text-[10px] font-bold tracking-widest uppercase items-center gap-1.5"
                         title="Finanzas y Pagos (Super Admin)"
                       >
+                        {hasUnreadAdminAlerts && (
+                          <span className="absolute -top-1 -right-1 flex h-3 w-3">
+                            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+                            <span className="relative inline-flex rounded-full h-3 w-3 bg-red-500 border border-white dark:border-[#121214]"></span>
+                          </span>
+                        )}
                         <Settings className="h-3.5 w-3.5" />
                         <span>SuperAdmin</span>
                       </button>
@@ -1301,6 +1339,21 @@ export default function App() {
 
                       {/* Bottom Utilities in Mobile Sidebar */}
                       <div className="p-4 border-t border-neutral-400 dark:border-zinc-800/60 bg-neutral-50 dark:bg-[#0c0c0e]/80 space-y-2">
+                        {isSuperAdmin && (
+                          <button
+                            onClick={() => { setIsSuperAdminPanelOpen(true); setIsMobileSidebarOpen(false); }}
+                            className="relative w-full p-2.5 bg-amber-50 dark:bg-amber-950/30 border border-amber-400 dark:border-amber-900/40 rounded-lg text-amber-600 dark:text-amber-400 hover:bg-amber-100 dark:hover:bg-amber-50 dark:bg-amber-950/30 cursor-pointer transition-colors text-[10px] font-bold tracking-widest uppercase flex flex-wrap items-center gap-2 justify-center"
+                          >
+                            {hasUnreadAdminAlerts && (
+                              <span className="absolute -top-1 -right-1 flex h-3 w-3">
+                                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+                                <span className="relative inline-flex rounded-full h-3 w-3 bg-red-500 border border-white dark:border-[#121214]"></span>
+                              </span>
+                            )}
+                            <Settings className="h-4 w-4" />
+                            <span>SuperAdmin Panel</span>
+                          </button>
+                        )}
                         {isTeacher && (
                           <button
                             onClick={() => { setIsAdminPanelOpen(true); setIsMobileSidebarOpen(false); }}
