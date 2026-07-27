@@ -10,7 +10,7 @@ interface SuperAdminPanelProps {
 }
 
 export default function SuperAdminPanel({ isOpen, onClose }: SuperAdminPanelProps) {
-  const [activeTab, setActiveTab] = useState<'saas'>('saas');
+  const [activeTab, setActiveTab] = useState<'saas' | 'roles'>('saas');
   const [confirmDialog, setConfirmDialog] = useState<{
     isOpen: boolean;
     type: 'danger' | 'info';
@@ -66,6 +66,49 @@ export default function SuperAdminPanel({ isOpen, onClose }: SuperAdminPanelProp
 
     return () => unsubscribe();
   }, [isOpen]);
+
+  // Roles Management State
+  const [userRoles, setUserRoles] = useState<Record<string, string>>({});
+  const [newRoleEmail, setNewRoleEmail] = useState('');
+  const [newRoleType, setNewRoleType] = useState('teacher');
+
+  // Fetch Roles
+  useEffect(() => {
+    if (!isOpen) return;
+    const rolesRef = ref(db, 'roles');
+    const unsubscribe = onValue(rolesRef, (snapshot) => {
+      setUserRoles(snapshot.val() || {});
+    });
+    return () => unsubscribe();
+  }, [isOpen]);
+
+  const handleAddRole = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newRoleEmail) return;
+    const encodedEmail = newRoleEmail.replace(/\./g, ',');
+    try {
+      await set(ref(db, `roles/${encodedEmail}`), newRoleType);
+      setNewRoleEmail('');
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  const handleRemoveRole = async (encodedEmail: string) => {
+    setConfirmDialog({
+      isOpen: true,
+      type: 'danger',
+      title: 'Revocar Rol',
+      message: '¿Estás seguro de eliminar este rol?',
+      onConfirm: async () => {
+        try {
+          await set(ref(db, `roles/${encodedEmail}`), null);
+        } catch (e) {
+          console.error(e);
+        }
+      }
+    });
+  };
 
   const handleApprovePayment = async (uid: string) => {
     setConfirmDialog({
@@ -146,10 +189,21 @@ export default function SuperAdminPanel({ isOpen, onClose }: SuperAdminPanelProp
             <div className="flex flex-wrap px-5 gap-6 border-t border-amber-200 dark:border-amber-900/30">
               <button
                 onClick={() => setActiveTab('saas')}
-                className={`py-3 text-xs font-bold tracking-widest uppercase transition-colors flex items-center gap-2 border-b-2 border-amber-500 text-amber-600 dark:text-amber-400`}
+                className={`py-3 text-xs font-bold tracking-widest uppercase transition-colors flex items-center gap-2 border-b-2 ${
+                  activeTab === 'saas' ? 'border-amber-500 text-amber-600 dark:text-amber-400' : 'border-transparent text-neutral-500 hover:text-neutral-700 dark:text-zinc-500 dark:hover:text-zinc-300'
+                }`}
               >
                 <DollarSign className="w-4 h-4" />
                 SaaS & Pagos
+              </button>
+              <button
+                onClick={() => setActiveTab('roles')}
+                className={`py-3 text-xs font-bold tracking-widest uppercase transition-colors flex items-center gap-2 border-b-2 ${
+                  activeTab === 'roles' ? 'border-amber-500 text-amber-600 dark:text-amber-400' : 'border-transparent text-neutral-500 hover:text-neutral-700 dark:text-zinc-500 dark:hover:text-zinc-300'
+                }`}
+              >
+                <Info className="w-4 h-4" />
+                Gestión de Roles
               </button>
             </div>
           </div>
@@ -243,6 +297,93 @@ export default function SuperAdminPanel({ isOpen, onClose }: SuperAdminPanelProp
                     ))}
                   </div>
                 )}
+              </motion.div>
+            )}
+
+            {activeTab === 'roles' && (
+              <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-6">
+                <div className="bg-amber-50 dark:bg-amber-950/30 border border-amber-400 dark:border-amber-900/40 rounded-xl p-4 flex gap-3">
+                  <Info className="w-5 h-5 text-amber-500 shrink-0 mt-0.5" />
+                  <p className="text-xs text-amber-800 dark:text-amber-300 leading-relaxed">
+                    Aquí puedes asignar roles especiales a cualquier correo. Los profesores podrán ver las estadísticas y administrar visibilidad de clases, mientras que los SuperAdmins tendrán acceso total incluyendo este panel.
+                  </p>
+                </div>
+
+                <div className="bg-white dark:bg-[#18181b] border border-neutral-200 dark:border-neutral-800 rounded-xl p-5 shadow-sm">
+                  <h3 className="text-sm font-bold text-neutral-900 dark:text-white mb-4">Añadir Nuevo Rol</h3>
+                  <form onSubmit={handleAddRole} className="flex flex-col sm:flex-row gap-3">
+                    <input
+                      type="email"
+                      placeholder="correo@ejemplo.com"
+                      value={newRoleEmail}
+                      onChange={(e) => setNewRoleEmail(e.target.value)}
+                      required
+                      className="flex-1 px-4 py-2 bg-neutral-50 dark:bg-[#0c0c0e] border border-neutral-300 dark:border-zinc-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500 text-sm dark:text-white"
+                    />
+                    <select
+                      value={newRoleType}
+                      onChange={(e) => setNewRoleType(e.target.value)}
+                      className="px-4 py-2 bg-neutral-50 dark:bg-[#0c0c0e] border border-neutral-300 dark:border-zinc-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500 text-sm dark:text-white"
+                    >
+                      <option value="teacher">Profesor</option>
+                      <option value="superadmin">SuperAdmin</option>
+                      <option value="guest">Invitado</option>
+                    </select>
+                    <button
+                      type="submit"
+                      className="px-5 py-2 bg-amber-600 hover:bg-amber-700 text-white font-bold rounded-lg transition-colors text-sm"
+                    >
+                      Asignar Rol
+                    </button>
+                  </form>
+                </div>
+
+                <div className="bg-white dark:bg-[#18181b] border border-neutral-200 dark:border-neutral-800 rounded-xl overflow-hidden shadow-sm">
+                  <table className="w-full text-left border-collapse">
+                    <thead>
+                      <tr className="bg-neutral-100 dark:bg-[#0c0c0e] border-b border-neutral-200 dark:border-neutral-800">
+                        <th className="px-5 py-3 text-xs font-bold text-neutral-500 dark:text-zinc-500 uppercase tracking-widest">Correo (ID)</th>
+                        <th className="px-5 py-3 text-xs font-bold text-neutral-500 dark:text-zinc-500 uppercase tracking-widest">Rol Asignado</th>
+                        <th className="px-5 py-3 text-xs font-bold text-neutral-500 dark:text-zinc-500 uppercase tracking-widest text-right">Acciones</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {Object.keys(userRoles).length === 0 ? (
+                        <tr>
+                          <td colSpan={3} className="px-5 py-8 text-center text-sm text-neutral-500 dark:text-zinc-500 italic">
+                            No hay roles dinámicos asignados.
+                          </td>
+                        </tr>
+                      ) : (
+                        Object.entries(userRoles).map(([encodedEmail, role]) => (
+                          <tr key={encodedEmail} className="border-b border-neutral-100 dark:border-neutral-800/50 last:border-0 hover:bg-neutral-50 dark:hover:bg-[#121214] transition-colors">
+                            <td className="px-5 py-3 text-sm font-medium text-neutral-900 dark:text-zinc-200">
+                              {encodedEmail.replace(/,/g, '.')}
+                            </td>
+                            <td className="px-5 py-3">
+                              <span className={`px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider rounded-full ${
+                                role === 'teacher' ? 'bg-indigo-100 text-indigo-700 dark:bg-indigo-900/40 dark:text-indigo-400' :
+                                role === 'superadmin' ? 'bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-400' :
+                                'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-400'
+                              }`}>
+                                {role === 'teacher' ? 'Profesor' : role === 'superadmin' ? 'SuperAdmin' : 'Invitado'}
+                              </span>
+                            </td>
+                            <td className="px-5 py-3 text-right">
+                              <button
+                                onClick={() => handleRemoveRole(encodedEmail)}
+                                className="p-2 text-red-500 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"
+                                title="Revocar Rol"
+                              >
+                                <X className="w-4 h-4" />
+                              </button>
+                            </td>
+                          </tr>
+                        ))
+                      )}
+                    </tbody>
+                  </table>
+                </div>
               </motion.div>
             )}
           </div>

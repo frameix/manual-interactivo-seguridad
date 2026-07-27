@@ -133,6 +133,7 @@ export default function App() {
   const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
   const [classVisibility, setClassVisibility] = useState<Record<number, boolean>>({});
   const [isVisibilityLoaded, setIsVisibilityLoaded] = useState(false);
+  const [userRoles, setUserRoles] = useState<Record<string, string>>({});
 
   // Prevent body scroll when any modal/floating window is open
   useEffect(() => {
@@ -228,6 +229,19 @@ export default function App() {
     }
   }, [user]);
 
+  // Fetch roles
+  useEffect(() => {
+    const rolesRef = ref(db, 'roles');
+    return onValue(rolesRef, (snapshot) => {
+      const data = snapshot.val();
+      if (data) {
+        setUserRoles(data);
+      } else {
+        setUserRoles({});
+      }
+    });
+  }, []);
+
   // Load initial completion state from local storage (Alumnos) or Firebase (Profesor)
   useEffect(() => {
     if (authLoading) return;
@@ -312,10 +326,13 @@ export default function App() {
 
   const activeLesson = lessonsData.find((l) => l.id === selectedClassId) || lessonsData[1];
 
-  const isTeacher = user?.email === 'profesor@unsm.edu.pe';
-  const isSuperAdmin = user?.email === 'manual-seguridad.web.stucco616@passinbox.com';
-  const isGuest = user?.email === 'invitado@unsm.edu.pe';
-  const isUniversityStudent = user?.email?.endsWith('@unsm.edu.pe') && !isTeacher && !isGuest;
+  const encodedEmail = user?.email?.replace(/\./g, ',') || '';
+  const userRole = userRoles[encodedEmail];
+
+  const isTeacher = userRole === 'teacher' || user?.email === 'profesor@unsm.edu.pe';
+  const isSuperAdmin = userRole === 'superadmin' || user?.email === 'manual-seguridad.web.stucco616@passinbox.com';
+  const isGuest = userRole === 'guest' || user?.email === 'invitado@unsm.edu.pe';
+  const isUniversityStudent = user?.email?.endsWith('@unsm.edu.pe') && !isTeacher && !isGuest && !isSuperAdmin;
   const isSaaSUser = user && !isTeacher && !isSuperAdmin && !isGuest && !isUniversityStudent;
 
   // Filter lessons based on visibility for students
