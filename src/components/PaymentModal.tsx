@@ -51,7 +51,7 @@ export default function PaymentModal({ onClose, uid, email }: PaymentModalProps)
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
-      <div className="w-full max-w-md bg-white dark:bg-[#121214] rounded-3xl overflow-hidden shadow-2xl border border-neutral-200 dark:border-zinc-800 flex flex-col max-h-[90vh]">
+      <div className="w-full max-w-3xl bg-white dark:bg-[#121214] rounded-3xl overflow-hidden shadow-2xl border border-neutral-200 dark:border-zinc-800 flex flex-col max-h-[90vh]">
         
         {/* Header */}
         <div className="flex justify-between items-center p-5 border-b border-neutral-200 dark:border-zinc-800">
@@ -102,89 +102,94 @@ export default function PaymentModal({ onClose, uid, email }: PaymentModalProps)
               </button>
             </div>
 
-            <div className="space-y-6">
-              {/* Info section */}
-              <div className="text-center p-4 bg-indigo-50 dark:bg-indigo-900/20 border border-indigo-100 dark:border-indigo-800/30 rounded-xl">
-                <p className="text-xs uppercase tracking-widest text-indigo-500 font-bold mb-1">Costo de Acceso Completo</p>
-                <p className="text-3xl font-black text-indigo-700 dark:text-indigo-400">
-                  {activeTab === 'yape' ? 'S/ 5.00' : '$ 1.50'}
-                </p>
-                <p className="text-xs text-indigo-600/80 dark:text-indigo-400/80 mt-1">Pago único, acceso de por vida.</p>
-              </div>
+            <div className="flex flex-col md:flex-row gap-6">
+              {/* Columna Izquierda: Información de Pago */}
+              <div className="flex-1 space-y-6">
+                {/* Info section */}
+                <div className="text-center p-4 bg-indigo-50 dark:bg-indigo-900/20 border border-indigo-100 dark:border-indigo-800/30 rounded-xl">
+                  <p className="text-xs uppercase tracking-widest text-indigo-500 font-bold mb-1">Costo de Acceso Completo</p>
+                  <p className="text-3xl font-black text-indigo-700 dark:text-indigo-400">
+                    {activeTab === 'yape' ? 'S/ 5.00' : '$ 1.50'}
+                  </p>
+                  <p className="text-xs text-indigo-600/80 dark:text-indigo-400/80 mt-1">Pago único, acceso de por vida.</p>
+                </div>
 
-              {/* Payment details */}
-              <div className="space-y-3">
-                <p className="text-sm font-bold text-neutral-800 dark:text-zinc-200">1. Realiza el pago a:</p>
-                
-                {activeTab === 'yape' ? (
-                  <div className="flex flex-col gap-3 p-4 bg-neutral-50 dark:bg-zinc-800/50 rounded-lg border border-neutral-200 dark:border-zinc-700/50">
-                    <div className="flex flex-col items-center justify-center pb-3 border-b border-neutral-200 dark:border-zinc-700/50">
-                      {/* Espacio para el QR - El usuario subirá su imagen */}
-                      <div className="w-32 h-32 bg-white rounded-xl border-2 border-dashed border-neutral-300 dark:border-zinc-600 flex items-center justify-center mb-2 overflow-hidden">
-                        <span className="text-xs text-neutral-400 text-center px-2">Tu código QR irá aquí</span>
-                        {/* <img src="/tu-qr.png" alt="QR Yape" className="w-full h-full object-cover" /> */}
+                {/* Payment details */}
+                <div className="space-y-3">
+                  <p className="text-sm font-bold text-neutral-800 dark:text-zinc-200">1. Realiza el pago a:</p>
+                  
+                  {activeTab === 'yape' ? (
+                    <div className="flex flex-col gap-3 p-4 bg-neutral-50 dark:bg-zinc-800/50 rounded-lg border border-neutral-200 dark:border-zinc-700/50">
+                      <div className="flex flex-col items-center justify-center pb-3 border-b border-neutral-200 dark:border-zinc-700/50">
+                        {/* Espacio para el QR - El usuario subirá su imagen */}
+                        <div className="w-32 h-32 bg-white rounded-xl border-2 border-dashed border-neutral-300 dark:border-zinc-600 flex items-center justify-center mb-2 overflow-hidden">
+                          <span className="text-xs text-neutral-400 text-center px-2">Tu código QR irá aquí</span>
+                          {/* <img src="/tu-qr.png" alt="QR Yape" className="w-full h-full object-cover" /> */}
+                        </div>
+                        <span className="text-xs font-bold text-neutral-500 dark:text-zinc-400 uppercase tracking-wider">Escanea para pagar con Yape o Plin</span>
                       </div>
-                      <span className="text-xs font-bold text-neutral-500 dark:text-zinc-400 uppercase tracking-wider">Escanea para pagar con Yape o Plin</span>
+                      <div className="flex justify-between items-center mt-1">
+                        <span className="text-xs text-neutral-500 dark:text-zinc-400">Titular</span>
+                        <span className="text-sm font-bold text-neutral-900 dark:text-white">Marco P.</span>
+                      </div>
                     </div>
-                    <div className="flex justify-between items-center mt-1">
-                      <span className="text-xs text-neutral-500 dark:text-zinc-400">Titular</span>
-                      <span className="text-sm font-bold text-neutral-900 dark:text-white">Marco P.</span>
+                  ) : (
+                    <div className="flex flex-col gap-2 p-3 bg-neutral-50 dark:bg-zinc-800/50 rounded-lg border border-neutral-200 dark:border-zinc-700/50">
+                      <div className="flex justify-between items-center">
+                        <span className="text-xs text-neutral-500 dark:text-zinc-400">Correo PayPal</span>
+                        <span className="text-sm font-bold text-neutral-900 dark:text-white">tu-correo@paypal.com</span>
+                      </div>
                     </div>
-                  </div>
-                ) : (
-                  <div className="flex flex-col gap-2 p-3 bg-neutral-50 dark:bg-zinc-800/50 rounded-lg border border-neutral-200 dark:border-zinc-700/50">
-                    <div className="flex justify-between items-center">
-                      <span className="text-xs text-neutral-500 dark:text-zinc-400">Correo PayPal</span>
-                      <span className="text-sm font-bold text-neutral-900 dark:text-white">tu-correo@paypal.com</span>
-                    </div>
-                  </div>
-                )}
+                  )}
+                </div>
               </div>
 
-              {/* Form */}
-              <form onSubmit={handleSubmit} className="space-y-4 pt-2 border-t border-neutral-200 dark:border-zinc-800">
-                <div className="space-y-1">
-                  <p className="text-sm font-bold text-neutral-800 dark:text-zinc-200">2. Valida tu pago:</p>
-                  <label className="block text-xs text-neutral-500 dark:text-zinc-400 mb-1">
-                    Número de Operación / ID de Transacción
-                  </label>
-                  <input
-                    type="text"
-                    value={transactionId}
-                    onChange={(e) => setTransactionId(e.target.value)}
-                    placeholder="Ej. 12345678"
-                    className="w-full bg-neutral-50 dark:bg-[#08080a] border border-neutral-300 dark:border-zinc-700 rounded-lg px-4 py-2.5 text-sm text-neutral-900 dark:text-white focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all"
-                  />
-                </div>
-                
-                <div>
-                  <label className="block text-xs text-neutral-500 dark:text-zinc-400 mb-1">
-                    Mensaje (Opcional)
-                  </label>
-                  <input
-                    type="text"
-                    value={message}
-                    onChange={(e) => setMessage(e.target.value)}
-                    placeholder="Nombre o alias"
-                    className="w-full bg-neutral-50 dark:bg-[#08080a] border border-neutral-300 dark:border-zinc-700 rounded-lg px-4 py-2.5 text-sm text-neutral-900 dark:text-white focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all"
-                  />
-                </div>
-
-                {error && (
-                  <div className="p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-900/50 rounded-lg flex items-start gap-2 text-red-600 dark:text-red-400 text-xs">
-                    <AlertTriangle className="w-4 h-4 shrink-0 mt-0.5" />
-                    <p>{error}</p>
+              {/* Columna Derecha: Formulario */}
+              <div className="flex-1">
+                <form onSubmit={handleSubmit} className="space-y-4 md:border-l md:border-neutral-200 md:dark:border-zinc-800 md:pl-6 pt-6 md:pt-0 border-t border-neutral-200 dark:border-zinc-800 md:border-t-0">
+                  <div className="space-y-1">
+                    <p className="text-sm font-bold text-neutral-800 dark:text-zinc-200">2. Valida tu pago:</p>
+                    <label className="block text-xs text-neutral-500 dark:text-zinc-400 mb-1 mt-3">
+                      Número de Operación / ID de Transacción
+                    </label>
+                    <input
+                      type="text"
+                      value={transactionId}
+                      onChange={(e) => setTransactionId(e.target.value)}
+                      placeholder="Ej. 12345678"
+                      className="w-full bg-neutral-50 dark:bg-[#08080a] border border-neutral-300 dark:border-zinc-700 rounded-lg px-4 py-2.5 text-sm text-neutral-900 dark:text-white focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all"
+                    />
                   </div>
-                )}
+                  
+                  <div>
+                    <label className="block text-xs text-neutral-500 dark:text-zinc-400 mb-1">
+                      Mensaje (Opcional)
+                    </label>
+                    <input
+                      type="text"
+                      value={message}
+                      onChange={(e) => setMessage(e.target.value)}
+                      placeholder="Nombre o alias"
+                      className="w-full bg-neutral-50 dark:bg-[#08080a] border border-neutral-300 dark:border-zinc-700 rounded-lg px-4 py-2.5 text-sm text-neutral-900 dark:text-white focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all"
+                    />
+                  </div>
 
-                <button
-                  type="submit"
-                  disabled={loading}
-                  className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-4 rounded-xl transition-colors flex items-center justify-center gap-2 disabled:opacity-70"
-                >
-                  {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : 'Enviar Validación'}
-                </button>
-              </form>
+                  {error && (
+                    <div className="p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-900/50 rounded-lg flex items-start gap-2 text-red-600 dark:text-red-400 text-xs mt-4">
+                      <AlertTriangle className="w-4 h-4 shrink-0 mt-0.5" />
+                      <p>{error}</p>
+                    </div>
+                  )}
+
+                  <button
+                    type="submit"
+                    disabled={loading}
+                    className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-4 rounded-xl transition-colors flex items-center justify-center gap-2 disabled:opacity-70 mt-6"
+                  >
+                    {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : 'Enviar Validación'}
+                  </button>
+                </form>
+              </div>
             </div>
           </div>
         )}
