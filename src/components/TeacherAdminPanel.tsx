@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Shield, X, Eye, EyeOff, Loader2, BookMarked, Edit2, Save, Lock, Layout, Search, Check, RefreshCw, Pencil, Trash, AlertTriangle, Info, KeyRound } from 'lucide-react';
+import { Shield, X, Eye, EyeOff, Loader2, BookMarked, Edit2, Save, Lock, Layout, Search, Check, RefreshCw, Pencil, Trash, AlertTriangle, Info, KeyRound, Download } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { db, auth } from '../config/firebase';
 import { ref, onValue, set, update, remove } from 'firebase/database';
@@ -316,6 +316,38 @@ export default function TeacherAdminPanel({ isOpen, onClose }: TeacherAdminPanel
     }
   };
 
+  const handleExportCSV = () => {
+    const headers = ["Estudiante", "Modulo", "Nota", "NotaMaxima", "Fecha"];
+    
+    // Filtrar calificaciones si hay búsqueda, o exportar todas si el profe prefiere
+    // Exportaremos todas las que coinciden con la búsqueda actual para más flexibilidad
+    const filteredGrades = grades.filter(grade => 
+      grade.estudiante.toLowerCase().includes(searchQuery.toLowerCase())
+    );
+
+    const rows = filteredGrades.map(grade => {
+      const lessonInfo = lessonsData.find(l => l.id === grade.clase);
+      const title = lessonInfo ? `Módulo ${grade.clase}: ${lessonInfo.title}` : `Clase ${grade.clase}`;
+      const dateStr = grade.fecha || new Date(grade.timestamp || 0).toLocaleDateString('es-ES');
+      
+      const cleanStudent = grade.estudiante.replace(/"/g, '""');
+      const cleanTitle = title.replace(/"/g, '""');
+
+      return `"${cleanStudent}","${cleanTitle}",${grade.nota},${grade.notaMaxima},"${dateStr}"`;
+    });
+
+    const csvContent = "\uFEFF" + [headers.join(","), ...rows].join("\n"); // Añadido BOM para Excel
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    
+    const link = document.createElement("a");
+    link.setAttribute("href", url);
+    link.setAttribute("download", `Calificaciones_AulaVirtual_${new Date().toISOString().split('T')[0]}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
   const handleSaveGrade = async (gradeId: string, currentEditCount: number = 0) => {
     const numValue = parseInt(editNotaValue, 10);
     if (isNaN(numValue) || numValue < 0 || numValue > 20) {
@@ -571,8 +603,19 @@ export default function TeacherAdminPanel({ isOpen, onClose }: TeacherAdminPanel
                 <div className="flex flex-col gap-3 mb-2">
                   <div className="flex items-center justify-between">
                     <h3 className="text-sm font-bold text-neutral-900 dark:text-white uppercase tracking-wider">Registro de Calificaciones</h3>
-                    <div className="text-xs text-neutral-600 dark:text-zinc-500 bg-white dark:bg-zinc-900 px-3 py-1 rounded-full border border-neutral-300 dark:border-zinc-800 shadow-sm dark:shadow-none">
-                      Total: {grades.length} evaluaciones
+                    <div className="flex items-center gap-2">
+                      <div className="text-xs text-neutral-600 dark:text-zinc-500 bg-white dark:bg-zinc-900 px-3 py-1.5 rounded-full border border-neutral-300 dark:border-zinc-800 shadow-sm dark:shadow-none">
+                        Total: {grades.length} evaluaciones
+                      </div>
+                      <button
+                        onClick={handleExportCSV}
+                        disabled={grades.length === 0}
+                        className="flex items-center gap-1.5 text-xs font-bold px-3 py-1.5 bg-emerald-50 dark:bg-emerald-950/30 text-emerald-600 dark:text-emerald-400 rounded-full border border-emerald-200 dark:border-emerald-900/40 hover:bg-emerald-100 dark:hover:bg-emerald-900/50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                        title="Exportar calificaciones a Excel/CSV"
+                      >
+                        <Download className="w-3.5 h-3.5" />
+                        Exportar CSV
+                      </button>
                     </div>
                   </div>
                   {/* Search Bar */}
