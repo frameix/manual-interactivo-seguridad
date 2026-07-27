@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { X, Terminal, Wrench, Shield, Copy, Check, Download, Info } from 'lucide-react';
+import { X, Terminal, Wrench, Shield, Copy, Check, Download, Info, ArrowRight } from 'lucide-react';
 
 interface SetupGuideModalProps {
   isOpen: boolean;
@@ -8,7 +8,7 @@ interface SetupGuideModalProps {
 }
 
 export const SetupGuideModal: React.FC<SetupGuideModalProps> = ({ isOpen, onClose, darkMode }) => {
-  const [activeTab, setActiveTab] = useState<'system' | 'drivers'>('system');
+  const [activeTab, setActiveTab] = useState<'system' | 'drivers' | 'virtualbox'>('virtualbox');
   const [copiedIndex, setCopiedIndex] = useState<number | null>(null);
 
   if (!isOpen) return null;
@@ -100,8 +100,19 @@ export const SetupGuideModal: React.FC<SetupGuideModalProps> = ({ isOpen, onClos
                 : 'border-transparent text-neutral-500 hover:text-neutral-900 dark:text-neutral-400 dark:hover:text-neutral-200'
             }`}
           >
-            <Terminal className="w-4 h-4" />
-            Driver TP-Link
+            <Wrench className="w-4 h-4" />
+            Drivers (Antena)
+          </button>
+          <button
+            onClick={() => setActiveTab('virtualbox')}
+            className={`px-4 py-3 text-sm font-medium border-b-2 transition-colors flex items-center gap-2 ${
+              activeTab === 'virtualbox' 
+                ? 'border-indigo-500 text-indigo-600 dark:text-indigo-400' 
+                : 'border-transparent text-neutral-500 hover:text-neutral-900 dark:text-neutral-400 dark:hover:text-neutral-200'
+            }`}
+          >
+            <Download className="w-4 h-4" />
+            Máquina Virtual
           </button>
         </div>
 
@@ -164,6 +175,63 @@ export const SetupGuideModal: React.FC<SetupGuideModalProps> = ({ isOpen, onClos
                     </div>
                   </div>
                 ))}
+              </div>
+            </div>
+          )}
+
+          {activeTab === 'virtualbox' && (
+            <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-300">
+              <div className="bg-indigo-50 dark:bg-indigo-500/10 border border-indigo-200 dark:border-indigo-500/20 rounded-xl p-4 flex gap-3">
+                <Info className="w-5 h-5 text-indigo-600 dark:text-indigo-400 shrink-0 mt-0.5" />
+                <div className="text-sm text-indigo-800 dark:text-indigo-300 space-y-2">
+                  <p className="font-bold">Instalación de Kali Linux en VirtualBox</p>
+                  <p>Para este laboratorio usaremos una máquina virtual preconstruida (Pre-built VM) de Kali Linux. Es la forma más rápida y segura de empezar, ya que viene con todas las herramientas configuradas.</p>
+                </div>
+              </div>
+
+              <div className="space-y-6">
+                <div className="bg-white dark:bg-[#18181b] p-5 rounded-xl border border-neutral-200 dark:border-neutral-800 shadow-sm hover:border-indigo-300 dark:hover:border-indigo-500/30 transition-colors">
+                  <h3 className="font-bold text-neutral-900 dark:text-white mb-2 flex items-center gap-2">
+                    <span className="w-6 h-6 rounded-full bg-indigo-100 dark:bg-indigo-900/50 text-indigo-600 dark:text-indigo-400 flex items-center justify-center text-xs">1</span>
+                    Instalar VirtualBox
+                  </h3>
+                  <p className="text-sm text-neutral-600 dark:text-neutral-400 mb-4 pl-8">
+                    Primero, descarga e instala el motor de virtualización. Ve a la página oficial, selecciona "Windows hosts" (o tu sistema) e instala el programa como cualquier otro.
+                  </p>
+                  <div className="pl-8">
+                    <a href="https://www.virtualbox.org/wiki/Downloads" target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 px-4 py-2 bg-indigo-50 dark:bg-indigo-500/10 hover:bg-indigo-100 dark:hover:bg-indigo-500/20 text-indigo-600 dark:text-indigo-400 text-sm font-semibold rounded-lg transition-colors border border-indigo-200 dark:border-indigo-500/20">
+                      Descargar VirtualBox Oficial <ArrowRight className="w-4 h-4" />
+                    </a>
+                  </div>
+                </div>
+
+                <div className="bg-white dark:bg-[#18181b] p-5 rounded-xl border border-neutral-200 dark:border-neutral-800 shadow-sm hover:border-indigo-300 dark:hover:border-indigo-500/30 transition-colors">
+                  <h3 className="font-bold text-neutral-900 dark:text-white mb-2 flex items-center gap-2">
+                    <span className="w-6 h-6 rounded-full bg-indigo-100 dark:bg-indigo-900/50 text-indigo-600 dark:text-indigo-400 flex items-center justify-center text-xs">2</span>
+                    Descargar Kali Linux (Pre-built VM)
+                  </h3>
+                  <p className="text-sm text-neutral-600 dark:text-neutral-400 mb-4 pl-8">
+                    Ve a la sección "Pre-built Virtual Machines" en la web oficial de Kali. Selecciona la opción de <strong>VirtualBox</strong> y descarga el archivo (usualmente un archivo .7z).
+                  </p>
+                  <div className="pl-8">
+                    <a href="https://www.kali.org/get-kali/#kali-virtual-machines" target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 px-4 py-2 bg-indigo-50 dark:bg-indigo-500/10 hover:bg-indigo-100 dark:hover:bg-indigo-500/20 text-indigo-600 dark:text-indigo-400 text-sm font-semibold rounded-lg transition-colors border border-indigo-200 dark:border-indigo-500/20">
+                      Descargar Imagen de Kali Linux <ArrowRight className="w-4 h-4" />
+                    </a>
+                  </div>
+                </div>
+
+                <div className="bg-white dark:bg-[#18181b] p-5 rounded-xl border border-neutral-200 dark:border-neutral-800 shadow-sm hover:border-indigo-300 dark:hover:border-indigo-500/30 transition-colors">
+                  <h3 className="font-bold text-neutral-900 dark:text-white mb-3 flex items-center gap-2">
+                    <span className="w-6 h-6 rounded-full bg-indigo-100 dark:bg-indigo-900/50 text-indigo-600 dark:text-indigo-400 flex items-center justify-center text-xs">3</span>
+                    Importar la Máquina
+                  </h3>
+                  <ul className="list-decimal list-inside text-sm text-neutral-600 dark:text-neutral-400 space-y-3 pl-8">
+                    <li>Descomprime el archivo descargado de Kali (recomendamos 7-Zip o WinRAR).</li>
+                    <li>Abre la carpeta descomprimida y haz doble clic en el archivo azul con extensión <strong>.vbox</strong>.</li>
+                    <li>VirtualBox se abrirá automáticamente con la máquina ya configurada.</li>
+                    <li>Haz clic en "Iniciar". Las credenciales por defecto son: usuario <code className="bg-neutral-100 dark:bg-neutral-800 px-1 rounded text-neutral-900 dark:text-white">kali</code> y contraseña <code className="bg-neutral-100 dark:bg-neutral-800 px-1 rounded text-neutral-900 dark:text-white">kali</code>.</li>
+                  </ul>
+                </div>
               </div>
             </div>
           )}

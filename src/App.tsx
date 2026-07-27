@@ -678,8 +678,8 @@ export default function App() {
                   </div>
                 </header>
 
-                {/* Active Lesson details main board */}
-                {user && !user.emailVerified ? (
+                {/* Bloqueo de contenido si no está verificado y NO es profesor ni superadmin */}
+                {user && !user.emailVerified && !isSuperAdmin && !isTeacher ? (
                   <div className="flex-1 flex flex-col items-center justify-center p-8 text-center mt-20">
                     <div className="w-24 h-24 bg-amber-50 dark:bg-amber-950/30 rounded-full flex items-center justify-center mb-6 border border-amber-400 dark:border-amber-900/40 shadow-[0_0_30px_rgba(251,191,36,0.15)]">
                       <AlertTriangle className="w-10 h-10 text-amber-600 dark:text-amber-500" />
