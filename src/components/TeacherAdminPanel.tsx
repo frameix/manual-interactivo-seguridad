@@ -13,7 +13,7 @@ interface TeacherAdminPanelProps {
 export default function TeacherAdminPanel({ isOpen, onClose }: TeacherAdminPanelProps) {
   const [visibilityData, setVisibilityData] = useState<Record<number, boolean>>({});
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState<'visibility' | 'grades' | 'codes'>('visibility');
+  const [activeTab, setActiveTab] = useState<'visibility' | 'grades' | 'codes' | 'students'>('visibility');
 
   // Gradebook State
   interface Calificacion {
@@ -33,10 +33,19 @@ export default function TeacherAdminPanel({ isOpen, onClose }: TeacherAdminPanel
   const [searchQuery, setSearchQuery] = useState('');
   
   // Class Codes State
-  const [classCodes, setClassCodes] = useState<{code: string, teacherEmail: string}[]>([]);
+  const [classCodes, setClassCodes] = useState<{code: string, teacherEmail: string, isActive?: boolean, createdAt: number}[]>([]);
   const [codesLoading, setCodesLoading] = useState(false);
   const [newCodeInput, setNewCodeInput] = useState('');
   const [codeMessage, setCodeMessage] = useState<{type: 'success' | 'error', text: string} | null>(null);
+  
+  // Students State
+  interface StudentData {
+    uid: string;
+    email: string;
+    classId: string;
+  }
+  const [myStudents, setMyStudents] = useState<StudentData[]>([]);
+  const [studentsLoading, setStudentsLoading] = useState(false);
   
   const [confirmDialog, setConfirmDialog] = useState<{
     isOpen: boolean;
@@ -143,9 +152,9 @@ export default function TeacherAdminPanel({ isOpen, onClose }: TeacherAdminPanel
     return () => unsubscribe();
   }, [isOpen, activeTab]);
 
-  // Fetch Class Codes when activeTab is 'codes'
+  // Fetch Class Codes
   useEffect(() => {
-    if (!isOpen || activeTab !== 'codes') return;
+    if (!isOpen) return;
     
     setCodesLoading(true);
     const codesRef = ref(db, 'classCodes');
@@ -153,7 +162,9 @@ export default function TeacherAdminPanel({ isOpen, onClose }: TeacherAdminPanel
       const data = snapshot.val() || {};
       const codesArray = Object.keys(data).map(key => ({
         code: key,
-        teacherEmail: data[key].teacherEmail || 'Desconocido'
+        teacherEmail: data[key].teacherEmail || 'Desconocido',
+        isActive: data[key].isActive ?? true,
+        createdAt: data[key].createdAt || 0
       }));
       setClassCodes(codesArray);
       setCodesLoading(false);
@@ -163,7 +174,42 @@ export default function TeacherAdminPanel({ isOpen, onClose }: TeacherAdminPanel
     });
 
     return () => unsubscribe();
-  }, [isOpen, activeTab]);
+  }, [isOpen]);
+
+  // Fetch Students
+  useEffect(() => {
+    if (!isOpen || activeTab !== 'students') return;
+    
+    setStudentsLoading(true);
+    const usersRef = ref(db, 'users');
+    const unsubscribe = onValue(usersRef, (snapshot) => {
+      const data = snapshot.val() || {};
+      const myCodesSet = new Set(
+        classCodes
+          .filter(c => c.teacherEmail === auth.currentUser?.email)
+          .map(c => c.code)
+      );
+
+      const studentsArray: StudentData[] = [];
+      Object.keys(data).forEach(uid => {
+        const u = data[uid];
+        if (u.classId && myCodesSet.has(u.classId)) {
+          studentsArray.push({
+            uid,
+            email: u.email || 'Desconocido',
+            classId: u.classId
+          });
+        }
+      });
+      setMyStudents(studentsArray);
+      setStudentsLoading(false);
+    }, (error) => {
+      console.error("Firebase onValue error students:", error);
+      setStudentsLoading(false);
+    });
+
+    return () => unsubscribe();
+  }, [isOpen, activeTab, classCodes]);
 
   const handleCreateCode = async () => {
     const code = newCodeInput.trim().toUpperCase();
@@ -184,7 +230,8 @@ export default function TeacherAdminPanel({ isOpen, onClose }: TeacherAdminPanel
     try {
       await set(ref(db, `classCodes/${code}`), {
         teacherEmail: auth.currentUser.email,
-        createdAt: Date.now()
+        createdAt: Date.now(),
+        isActive: true
       });
       setNewCodeInput('');
       setCodeMessage({ type: 'success', text: 'Código de clase creado exitosamente.' });
@@ -195,27 +242,78 @@ export default function TeacherAdminPanel({ isOpen, onClose }: TeacherAdminPanel
     }
   };
 
-  const handleDeleteCode = (code: string) => {
-    setConfirmDialog({
-      isOpen: true,
-      type: 'danger',
-      title: '¿Eliminar código de clase?',
-      message: `El código ${code} será eliminado. Los alumnos actuales mantendrán su acceso, pero ningún alumno nuevo podrá usar este código.`,
-      onConfirm: async () => {
+  const handleToggleCodeLock = async (code: string, currentStatus: boolean) => {
+    try {
+      await update(ref(db, `classCodes/${code}`), { isActive: !currentStatus });
+    } catch (e) {
+      console.error(e);
+      setConfirmDialog({
+        isOpen: true,
+        type: 'danger',
+        title: 'Error',
+        message: 'No se pudo actualizar el estado del código. Verifica tus permisos.',
+        onConfirm: () => {}
+      });
+    }
+  };
+
+  const handleDestroyClass = (code: string) => {
+    const userInput = window.prompt(`ESTÁS A PUNTO DE DESTRUIR LA CLASE.\nTodos los alumnos inscritos con el código ${code} serán expulsados.\n\nEscribe "${code}" para confirmar:`);
+    if (userInput === code) {
+      const destroy = async () => {
         try {
+          const { get } = await import('firebase/database');
+          const usersSnap = await get(ref(db, 'users'));
+          if (usersSnap.exists()) {
+             const updates: Record<string, any> = {};
+             usersSnap.forEach(child => {
+                if (child.val().classId === code) {
+                   updates[`${child.key}/classId`] = null;
+                }
+             });
+             if (Object.keys(updates).length > 0) {
+               await update(ref(db, 'users'), updates);
+             }
+          }
           await remove(ref(db, `classCodes/${code}`));
-        } catch (e) {
+        } catch(e) {
           console.error(e);
           setConfirmDialog({
             isOpen: true,
             type: 'danger',
             title: 'Error',
-            message: 'No se pudo eliminar el código. Verifica tus permisos.',
+            message: 'Error al destruir la clase.',
             onConfirm: () => {}
           });
         }
+      };
+      destroy();
+    } else if (userInput !== null) {
+      setConfirmDialog({
+        isOpen: true,
+        type: 'info',
+        title: 'Acción Cancelada',
+        message: 'Confirmación incorrecta.',
+        onConfirm: () => {}
+      });
+    }
+  };
+
+  const handleKickStudent = async (uid: string) => {
+    if (window.confirm("¿Seguro que deseas expulsar a este alumno? Perderá acceso a los laboratorios privados.")) {
+      try {
+        await set(ref(db, `users/${uid}/classId`), null);
+      } catch (e) {
+        console.error(e);
+        setConfirmDialog({
+          isOpen: true,
+          type: 'danger',
+          title: 'Error',
+          message: 'Error al expulsar al alumno.',
+          onConfirm: () => {}
+        });
       }
-    });
+    }
   };
 
   const handleSaveGrade = async (gradeId: string, currentEditCount: number = 0) => {
@@ -372,6 +470,17 @@ export default function TeacherAdminPanel({ isOpen, onClose }: TeacherAdminPanel
                 >
                   <KeyRound className="w-4 h-4" />
                   Códigos de Clase
+                </button>
+                <button
+                  onClick={() => setActiveTab('students')}
+                  className={`flex items-center gap-2 px-1 py-3 text-sm font-bold border-b-2 transition-colors ${
+                    activeTab === 'students'
+                      ? 'border-indigo-500 text-indigo-600 dark:text-indigo-400'
+                      : 'border-transparent text-neutral-500 hover:text-neutral-700 dark:hover:text-zinc-300'
+                  }`}
+                >
+                  <Shield className="w-4 h-4" />
+                  Mis Alumnos
                 </button>
             </div>
           </div>
@@ -666,24 +775,111 @@ export default function TeacherAdminPanel({ isOpen, onClose }: TeacherAdminPanel
                   ) : (
                     <div className="grid gap-3">
                       {classCodes.map((codeObj) => (
-                        <div key={codeObj.code} className="flex items-center justify-between p-4 bg-white dark:bg-zinc-900/50 border border-neutral-200 dark:border-zinc-800 rounded-xl">
+                        <div key={codeObj.code} className={`flex items-center justify-between p-4 bg-white dark:bg-zinc-900/50 border rounded-xl transition-colors ${codeObj.isActive ? 'border-indigo-200 dark:border-indigo-900/40' : 'border-neutral-200 dark:border-zinc-800 opacity-75'}`}>
                           <div className="flex flex-col gap-1">
-                            <span className="font-mono text-lg font-bold text-indigo-600 dark:text-indigo-400">{codeObj.code}</span>
+                            <div className="flex items-center gap-2">
+                              <span className={`font-mono text-lg font-bold ${codeObj.isActive ? 'text-indigo-600 dark:text-indigo-400' : 'text-neutral-500 dark:text-zinc-500'}`}>{codeObj.code}</span>
+                              {!codeObj.isActive && (
+                                <span className="px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-neutral-200 dark:bg-neutral-800 text-neutral-600 dark:text-neutral-400">
+                                  Bloqueado
+                                </span>
+                              )}
+                            </div>
                             <span className="text-xs text-neutral-500">Creado por: {codeObj.teacherEmail}</span>
                           </div>
-                          <button
-                            onClick={() => handleDeleteCode(codeObj.code)}
-                            className="p-2 text-red-500 hover:bg-red-50 dark:hover:bg-red-950/30 rounded-lg transition-colors"
-                            title="Eliminar código"
-                          >
-                            <Trash className="w-4 h-4" />
-                          </button>
+                          
+                          <div className="flex items-center gap-4">
+                            <div className="flex flex-col items-center gap-1">
+                              <span className="text-[9px] font-bold uppercase tracking-widest text-neutral-400">Inscripciones</span>
+                              <button
+                                onClick={() => handleToggleCodeLock(codeObj.code, codeObj.isActive ?? true)}
+                                className={`relative flex-shrink-0 inline-flex h-5 w-9 items-center rounded-full transition-colors focus:outline-none ${
+                                  codeObj.isActive ? 'bg-indigo-500' : 'bg-neutral-300 dark:bg-neutral-700'
+                                }`}
+                                title={codeObj.isActive ? 'Cerrar inscripciones' : 'Abrir inscripciones'}
+                              >
+                                <span className={`inline-block h-3 w-3 transform rounded-full bg-white transition-transform ${codeObj.isActive ? 'translate-x-5' : 'translate-x-1'}`} />
+                              </button>
+                            </div>
+                            
+                            <div className="w-px h-8 bg-neutral-200 dark:bg-neutral-800 mx-1"></div>
+
+                            <button
+                              onClick={() => handleDestroyClass(codeObj.code)}
+                              className="flex items-center gap-2 px-3 py-1.5 bg-red-50 hover:bg-red-100 dark:bg-red-950/30 dark:hover:bg-red-900/40 text-red-600 dark:text-red-400 rounded-lg transition-colors border border-red-200 dark:border-red-900/40"
+                              title="Destruir clase permanentemente y expulsar a todos"
+                            >
+                              <Trash className="w-4 h-4" />
+                              <span className="text-xs font-bold uppercase tracking-wider hidden sm:inline">Destruir</span>
+                            </button>
+                          </div>
                         </div>
                       ))}
                     </div>
                   )}
                 </div>
               </div>
+            )}
+
+            {activeTab === 'students' && (
+              <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-6">
+                <div className="flex flex-col gap-3">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <h3 className="text-lg font-bold text-neutral-900 dark:text-white">Mis Alumnos</h3>
+                      <p className="text-sm text-neutral-600 dark:text-zinc-400">Alumnos inscritos a través de tus códigos de clase.</p>
+                    </div>
+                    <div className="text-xs text-indigo-700 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-950/30 px-3 py-1 rounded-full border border-indigo-200 dark:border-indigo-900/40">
+                      Total: {myStudents.length}
+                    </div>
+                  </div>
+
+                  {studentsLoading ? (
+                    <div className="flex flex-col items-center justify-center py-12 gap-3 text-neutral-500 dark:text-zinc-500">
+                      <Loader2 className="w-8 h-8 animate-spin text-indigo-500" />
+                      <p className="text-sm font-medium">Cargando alumnos...</p>
+                    </div>
+                  ) : (
+                    <div className="bg-white dark:bg-[#18181b] rounded-xl border border-neutral-300 dark:border-neutral-800 overflow-hidden">
+                      <div className="overflow-x-auto">
+                        <table className="w-full text-left border-collapse">
+                          <thead>
+                            <tr className="bg-neutral-50 dark:bg-zinc-900/50 border-b border-neutral-300 dark:border-neutral-800">
+                              <th className="p-4 text-xs font-bold text-neutral-500 dark:text-zinc-400 uppercase tracking-wider">Correo del Alumno</th>
+                              <th className="p-4 text-xs font-bold text-neutral-500 dark:text-zinc-400 uppercase tracking-wider">Código de Clase</th>
+                              <th className="p-4 text-xs font-bold text-neutral-500 dark:text-zinc-400 uppercase tracking-wider text-right">Acciones</th>
+                            </tr>
+                          </thead>
+                          <tbody className="divide-y divide-neutral-200 dark:divide-neutral-800">
+                            {myStudents.length === 0 ? (
+                              <tr>
+                                <td colSpan={3} className="p-8 text-center text-sm text-neutral-500 dark:text-zinc-500">
+                                  Aún no tienes alumnos inscritos.
+                                </td>
+                              </tr>
+                            ) : (
+                              myStudents.map(student => (
+                                <tr key={student.uid} className="hover:bg-neutral-50 dark:hover:bg-zinc-900/30 transition-colors">
+                                  <td className="p-4 text-sm font-medium text-neutral-900 dark:text-zinc-200">{student.email}</td>
+                                  <td className="p-4 font-mono font-bold text-indigo-600 dark:text-indigo-400 text-xs">{student.classId}</td>
+                                  <td className="p-4 text-right">
+                                    <button
+                                      onClick={() => handleKickStudent(student.uid)}
+                                      className="px-3 py-1 bg-red-50 hover:bg-red-100 dark:bg-red-950/30 dark:hover:bg-red-900/50 text-red-600 dark:text-red-400 text-xs font-bold rounded-lg border border-red-200 dark:border-red-900/40 transition-colors"
+                                    >
+                                      Expulsar
+                                    </button>
+                                  </td>
+                                </tr>
+                              ))
+                            )}
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </motion.div>
             )}
           </div>
         </motion.div>
