@@ -18,6 +18,7 @@ export const UserSettingsModal: React.FC<UserSettingsModalProps> = ({ isOpen, on
   const [isDeleting, setIsDeleting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [showDeleteZone, setShowDeleteZone] = useState(false);
+  const [showClassCode, setShowClassCode] = useState(false);
   const [resetMessage, setResetMessage] = useState<string | null>(null);
   const [isResetting, setIsResetting] = useState(false);
   const [classCode, setClassCode] = useState('');
@@ -154,38 +155,55 @@ export const UserSettingsModal: React.FC<UserSettingsModalProps> = ({ isOpen, on
         <div className="p-6 space-y-6 overflow-y-auto">
 
           {userRole === 'freemium' && (
-            <div className="space-y-4 pb-6 border-b border-neutral-200 dark:border-zinc-800">
-              <h3 className="text-sm font-bold text-indigo-600 dark:text-indigo-400 flex items-center gap-2">
-                <Key className="w-4 h-4" />
-                Unirse a una Clase
-              </h3>
-              
-              <p className="text-sm text-neutral-700 dark:text-zinc-400 leading-relaxed">
-                Si tu profesor te dio un código de clase, ingrésalo aquí para desbloquear el contenido del laboratorio.
-              </p>
+            <div className="pb-6 border-b border-neutral-200 dark:border-zinc-800">
+              {!showClassCode ? (
+                <button
+                  onClick={() => setShowClassCode(true)}
+                  className="text-xs text-indigo-600 dark:text-indigo-400 hover:underline font-medium flex items-center gap-1"
+                >
+                  ¿Tienes un código de clase de tu profesor?
+                </button>
+              ) : (
+                <div className="space-y-4 animate-in fade-in slide-in-from-top-2">
+                  <h3 className="text-sm font-bold text-indigo-600 dark:text-indigo-400 flex items-center gap-2">
+                    <Key className="w-4 h-4" />
+                    Unirse a una Clase
+                  </h3>
+                  
+                  <p className="text-sm text-neutral-700 dark:text-zinc-400 leading-relaxed">
+                    Si tu profesor te dio un código de clase, ingrésalo aquí para desbloquear el contenido del laboratorio.
+                  </p>
 
-              {joinMessage && (
-                <div className={`p-3 rounded-lg text-sm font-medium ${joinMessage.type === 'success' ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-red-50 text-red-700 border border-red-200'}`}>
-                  {joinMessage.text}
+                  {joinMessage && (
+                    <div className={`p-3 rounded-lg text-sm font-medium ${joinMessage.type === 'success' ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-red-50 text-red-700 border border-red-200'}`}>
+                      {joinMessage.text}
+                    </div>
+                  )}
+
+                  <div className="flex gap-2">
+                    <input
+                      type="text"
+                      value={classCode}
+                      onChange={(e) => setClassCode(e.target.value.toUpperCase())}
+                      placeholder="Ej. CIBER2026"
+                      className="flex-1 bg-neutral-100 dark:bg-zinc-800 border border-neutral-300 dark:border-zinc-700 rounded-lg px-4 py-2.5 text-neutral-900 dark:text-white placeholder-neutral-400 focus:outline-none focus:border-indigo-500 font-mono uppercase transition-colors"
+                    />
+                    <button
+                      onClick={handleJoinClass}
+                      disabled={isJoining || !classCode.trim()}
+                      className="px-6 py-2.5 bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 text-white font-bold rounded-lg transition-colors flex items-center gap-2"
+                    >
+                      {isJoining ? <Loader2 className="w-4 h-4 animate-spin" /> : "Unirse"}
+                    </button>
+                  </div>
+                  <button
+                    onClick={() => setShowClassCode(false)}
+                    className="text-xs text-neutral-500 hover:text-neutral-700 dark:hover:text-neutral-300 mt-2"
+                  >
+                    Ocultar
+                  </button>
                 </div>
               )}
-
-              <div className="flex gap-2">
-                <input
-                  type="text"
-                  value={classCode}
-                  onChange={(e) => setClassCode(e.target.value.toUpperCase())}
-                  placeholder="Ej. CIBER2026"
-                  className="flex-1 bg-neutral-100 dark:bg-zinc-800 border border-neutral-300 dark:border-zinc-700 rounded-lg px-4 py-2.5 text-neutral-900 dark:text-white placeholder-neutral-400 focus:outline-none focus:border-indigo-500 font-mono uppercase transition-colors"
-                />
-                <button
-                  onClick={handleJoinClass}
-                  disabled={isJoining || !classCode.trim()}
-                  className="px-6 py-2.5 bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 text-white font-bold rounded-lg transition-colors flex items-center gap-2"
-                >
-                  {isJoining ? <Loader2 className="w-4 h-4 animate-spin" /> : "Unirse"}
-                </button>
-              </div>
             </div>
           )}
           
