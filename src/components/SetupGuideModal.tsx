@@ -82,6 +82,17 @@ export const SetupGuideModal: React.FC<SetupGuideModalProps> = ({ isOpen, onClos
         {/* Tabs */}
         <div className="flex border-b border-neutral-400 dark:border-neutral-800 bg-neutral-50 dark:bg-[#161618] px-4">
           <button
+            onClick={() => setActiveTab('virtualbox')}
+            className={`px-4 py-3 text-sm font-medium border-b-2 transition-colors flex items-center gap-2 ${
+              activeTab === 'virtualbox' 
+                ? 'border-indigo-500 text-indigo-600 dark:text-indigo-400' 
+                : 'border-transparent text-neutral-500 hover:text-neutral-900 dark:text-neutral-400 dark:hover:text-neutral-200'
+            }`}
+          >
+            <Download className="w-4 h-4" />
+            Máquina Virtual
+          </button>
+          <button
             onClick={() => setActiveTab('system')}
             className={`px-4 py-3 text-sm font-medium border-b-2 transition-colors flex items-center gap-2 ${
               activeTab === 'system' 
@@ -102,17 +113,6 @@ export const SetupGuideModal: React.FC<SetupGuideModalProps> = ({ isOpen, onClos
           >
             <Wrench className="w-4 h-4" />
             Drivers (Antena)
-          </button>
-          <button
-            onClick={() => setActiveTab('virtualbox')}
-            className={`px-4 py-3 text-sm font-medium border-b-2 transition-colors flex items-center gap-2 ${
-              activeTab === 'virtualbox' 
-                ? 'border-indigo-500 text-indigo-600 dark:text-indigo-400' 
-                : 'border-transparent text-neutral-500 hover:text-neutral-900 dark:text-neutral-400 dark:hover:text-neutral-200'
-            }`}
-          >
-            <Download className="w-4 h-4" />
-            Máquina Virtual
           </button>
         </div>
 
