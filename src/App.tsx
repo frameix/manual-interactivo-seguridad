@@ -37,6 +37,7 @@ import {
   Sparkles,
   Award,
   ChevronRight,
+  AlertTriangle,
   AlertCircle,
   ShieldAlert,
   Copy,
