@@ -187,7 +187,7 @@ export default function LoginScreen({ initialError, onLoginSuccess, onBack, init
 
           <div className="mt-8 text-center border-t border-white/5 pt-6">
             <p className="text-xs text-zinc-500">
-              Desarrollado por FRAME.
+              Desarrollado por Marco A. Pacheco (FRAME).
             </p>
           </div>
         </div>
