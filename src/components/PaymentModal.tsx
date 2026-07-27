@@ -124,7 +124,7 @@ export default function PaymentModal({ onClose, uid, email }: PaymentModalProps)
                     </div>
                     <div className="flex justify-between items-center">
                       <span className="text-xs text-neutral-500 dark:text-zinc-400">Titular</span>
-                      <span className="text-sm font-bold text-neutral-900 dark:text-white">Marco Pacheco</span>
+                      <span className="text-sm font-bold text-neutral-900 dark:text-white">M. A. P. A.</span>
                     </div>
                   </div>
                 ) : (

@@ -63,7 +63,7 @@ export default function App() {
   // Easter Egg: Hidden Console Signature for Ownership Verification
   useEffect(() => {
     console.log("%cAula Virtual | Sistema de Laboratorios", "font-size: 14px; color: #a1a1aa; font-style: italic; padding-left: 10px;");
-    console.log("%cEl código fuente, arquitectura y diseño de este software (Manual Interactivo de Seguridad) han sido desarrollados íntegramente por Marco A. Pacheco A. (FRAME).", "font-size: 12px; color: #71717a; padding-left: 10px;");
+    console.log("%cEl código fuente, arquitectura y diseño de este software (Manual Interactivo de Seguridad) han sido desarrollados íntegramente por M. A. P. A. (FRAME).", "font-size: 12px; color: #71717a; padding-left: 10px;");
   }, []);
 
   const [showLanding, setShowLanding] = useState(true);
@@ -1191,7 +1191,7 @@ export default function App() {
                       © 2026 Manual Interactivo de Ciberseguridad. Todos los derechos reservados.
                     </div>
                     <div className="flex flex-wrap items-center gap-2.5 justify-center">
-                      <span className="px-3 py-1 bg-indigo-50/50 dark:bg-indigo-900/20 text-indigo-600 dark:text-indigo-400 font-bold rounded-full border border-indigo-400 dark:border-indigo-800/50 text-[10px] uppercase font-mono tracking-wider">Marco A. Pacheco A.</span>
+                      <span className="px-3 py-1 bg-indigo-50/50 dark:bg-indigo-900/20 text-indigo-600 dark:text-indigo-400 font-bold rounded-full border border-indigo-400 dark:border-indigo-800/50 text-[10px] uppercase font-mono tracking-wider">M. A. P. A.</span>
                       <span className="px-3 py-1 bg-neutral-100 dark:bg-zinc-900/50 rounded-full border border-neutral-400 dark:border-zinc-800 text-[10px] uppercase font-mono tracking-wider">Aula Virtual</span>
                       <FrameWatermark variant="footer" />
                     </div>
