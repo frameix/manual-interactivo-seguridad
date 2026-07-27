@@ -107,7 +107,16 @@ export default function App() {
     const timer = setTimeout(() => {
       const activeDesktop = document.getElementById(`btn_select_class_${selectedClassId}`);
       if (activeDesktop) {
-        activeDesktop.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        const container = activeDesktop.closest('.overflow-y-auto');
+        if (container) {
+          // Scroll precisely within the sidebar container without affecting the main window scroll
+          const offsetTop = (activeDesktop as HTMLElement).offsetTop;
+          const containerOffsetTop = (container as HTMLElement).offsetTop;
+          container.scrollTo({
+            top: offsetTop - containerOffsetTop - container.clientHeight / 2 + activeDesktop.clientHeight / 2,
+            behavior: 'smooth'
+          });
+        }
       }
       setHasInitialScrolled(true);
     }, 200);
