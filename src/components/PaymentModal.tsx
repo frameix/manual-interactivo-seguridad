@@ -51,7 +51,7 @@ export default function PaymentModal({ onClose, uid, email }: PaymentModalProps)
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
-      <div className="w-full max-w-md bg-white dark:bg-[#121214] rounded-3xl overflow-hidden shadow-2xl border border-neutral-200 dark:border-zinc-800">
+      <div className="w-full max-w-md bg-white dark:bg-[#121214] rounded-3xl overflow-hidden shadow-2xl border border-neutral-200 dark:border-zinc-800 flex flex-col max-h-[90vh]">
         
         {/* Header */}
         <div className="flex justify-between items-center p-5 border-b border-neutral-200 dark:border-zinc-800">
@@ -75,7 +75,7 @@ export default function PaymentModal({ onClose, uid, email }: PaymentModalProps)
             </p>
           </div>
         ) : (
-          <div className="p-5">
+          <div className="p-5 overflow-y-auto flex-1 scrollbar-thin">
             {/* Tabs */}
             <div className="flex p-1 bg-neutral-100 dark:bg-zinc-900 rounded-xl mb-6">
               <button
