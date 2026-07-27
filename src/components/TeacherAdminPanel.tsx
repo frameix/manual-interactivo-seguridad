@@ -36,6 +36,7 @@ export default function TeacherAdminPanel({ isOpen, onClose }: TeacherAdminPanel
   const [classCodes, setClassCodes] = useState<{code: string, teacherEmail: string}[]>([]);
   const [codesLoading, setCodesLoading] = useState(false);
   const [newCodeInput, setNewCodeInput] = useState('');
+  const [codeMessage, setCodeMessage] = useState<{type: 'success' | 'error', text: string} | null>(null);
   
   const [confirmDialog, setConfirmDialog] = useState<{
     isOpen: boolean;
@@ -69,7 +70,6 @@ export default function TeacherAdminPanel({ isOpen, onClose }: TeacherAdminPanel
     }, (error) => {
       console.error("Firebase onValue error:", error);
       setLoading(false);
-      alert("Error de permisos en la base de datos. Verifica las reglas en Firebase.");
     });
 
     // Failsafe: Si Firebase no responde en 2 segundos, quitar el loader de todas formas
@@ -91,7 +91,13 @@ export default function TeacherAdminPanel({ isOpen, onClose }: TeacherAdminPanel
       await set(ref(db, `config/classVisibility/${classId}`), newValue);
     } catch (error) {
       console.error("Error al actualizar visibilidad:", error);
-      alert("Hubo un error al guardar. Verifica tu conexión.");
+      setConfirmDialog({
+        isOpen: true,
+        type: 'danger',
+        title: 'Error de Red',
+        message: 'Hubo un error al guardar. Verifica tu conexión.',
+        onConfirm: () => {}
+      });
     }
   };
 
@@ -103,7 +109,14 @@ export default function TeacherAdminPanel({ isOpen, onClose }: TeacherAdminPanel
       });
       await set(ref(db, 'config/classVisibility'), updates);
     } catch (error) {
-      console.error("Error al actualizar visibilidad masiva:", error);
+      console.error("Error al actualizar toda la visibilidad:", error);
+      setConfirmDialog({
+        isOpen: true,
+        type: 'danger',
+        title: 'Error de Red',
+        message: 'Hubo un error al guardar. Verifica tu conexión.',
+        onConfirm: () => {}
+      });
     }
   };
 
@@ -155,6 +168,17 @@ export default function TeacherAdminPanel({ isOpen, onClose }: TeacherAdminPanel
   const handleCreateCode = async () => {
     const code = newCodeInput.trim().toUpperCase();
     if (!code) return;
+    
+    // Validación de longitud mínima (6 caracteres) y que sea alfanumérico
+    if (code.length < 6) {
+      setCodeMessage({ type: 'error', text: 'El código debe tener al menos 6 caracteres por seguridad.' });
+      return;
+    }
+    if (!/^[A-Z0-9]+$/.test(code)) {
+      setCodeMessage({ type: 'error', text: 'El código solo puede contener letras y números.' });
+      return;
+    }
+
     if (!auth.currentUser?.email) return;
 
     try {
@@ -163,10 +187,11 @@ export default function TeacherAdminPanel({ isOpen, onClose }: TeacherAdminPanel
         createdAt: Date.now()
       });
       setNewCodeInput('');
-      alert("Código de clase creado exitosamente.");
+      setCodeMessage({ type: 'success', text: 'Código de clase creado exitosamente.' });
+      setTimeout(() => setCodeMessage(null), 3000);
     } catch (e) {
       console.error(e);
-      alert("Error al crear el código. Verifica tus permisos.");
+      setCodeMessage({ type: 'error', text: 'Error al crear el código. Verifica tus permisos.' });
     }
   };
 
@@ -175,7 +200,13 @@ export default function TeacherAdminPanel({ isOpen, onClose }: TeacherAdminPanel
       await remove(ref(db, `classCodes/${code}`));
     } catch (e) {
       console.error(e);
-      alert("Error al eliminar el código.");
+      setConfirmDialog({
+        isOpen: true,
+        type: 'danger',
+        title: 'Error',
+        message: 'No se pudo eliminar el código. Verifica tus permisos.',
+        onConfirm: () => {}
+      });
     }
   };
 
@@ -575,14 +606,23 @@ export default function TeacherAdminPanel({ isOpen, onClose }: TeacherAdminPanel
               <div className="p-6">
                 <div className="mb-6 flex flex-col gap-2">
                   <h3 className="text-lg font-bold text-neutral-900 dark:text-white">Generar Código de Invitación</h3>
-                  <p className="text-sm text-neutral-600 dark:text-zinc-400">Los alumnos ingresarán este código en su panel de configuración para ser vinculados automáticamente a tu clase con rol de "Alumno".</p>
+                  <p className="text-sm text-neutral-600 dark:text-zinc-400">Los alumnos ingresarán este código en su panel de configuración para ser vinculados automáticamente a tu clase con rol de "Alumno". Mínimo 6 caracteres.</p>
                 </div>
+
+                {codeMessage && (
+                  <div className={`mb-6 p-3 rounded-lg text-sm font-medium ${codeMessage.type === 'success' ? 'bg-emerald-50 text-emerald-700 border border-emerald-200 dark:border-emerald-900/40 dark:bg-emerald-950/30 dark:text-emerald-400' : 'bg-red-50 text-red-700 border border-red-200 dark:border-red-900/40 dark:bg-red-950/30 dark:text-red-400'}`}>
+                    {codeMessage.text}
+                  </div>
+                )}
 
                 <div className="flex gap-3 mb-8">
                   <input
                     type="text"
                     value={newCodeInput}
-                    onChange={(e) => setNewCodeInput(e.target.value.toUpperCase())}
+                    onChange={(e) => {
+                      setNewCodeInput(e.target.value.toUpperCase());
+                      setCodeMessage(null); // Limpiar mensaje al escribir
+                    }}
                     placeholder="Ej. CIBER2026"
                     className="flex-1 px-4 py-2 bg-neutral-100 dark:bg-[#0a0a0a] border border-neutral-300 dark:border-neutral-800 rounded-lg focus:outline-none focus:border-indigo-500 text-neutral-900 dark:text-white font-mono uppercase"
                   />
