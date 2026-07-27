@@ -25,7 +25,7 @@ import FrameWatermark from "./components/FrameWatermark";
 import PaymentModal from "./components/PaymentModal";
 import { auth, db } from "./config/firebase";
 import { onAuthStateChanged, signOut, User, sendEmailVerification } from "firebase/auth";
-import { ref, set, onValue, off, DatabaseReference } from "firebase/database";
+import { ref, set, update, onValue, off, DatabaseReference } from "firebase/database";
 
 import {
   BookOpen,
@@ -167,7 +167,29 @@ export default function App() {
     let unsubscribeDb: (() => void) | null = null;
 
     const unsubscribeAuth = onAuthStateChanged(auth, async (currentUser) => {
-      setUser(currentUser);
+      if (currentUser) {
+        setUser(currentUser);
+        
+        // Record user to database for SuperAdmin visibility
+        const userRef = ref(db, `users/${currentUser.uid}`);
+        update(userRef, {
+          email: currentUser.email,
+          lastLogin: Date.now()
+        }).catch(console.error);
+
+        // Update presence
+        sessionRef = ref(db, `activeSessions/${currentUser.uid}`);
+        set(sessionRef, {
+          email: currentUser.email,
+          timestamp: Date.now()
+        }).catch(console.error);
+      } else {
+        setUser(null);
+        if (sessionRef) {
+          set(sessionRef, null).catch(console.error);
+          sessionRef = null;
+        }
+      }
 
       if (currentUser?.email === 'profesor@unsm.edu.pe') {
         try {

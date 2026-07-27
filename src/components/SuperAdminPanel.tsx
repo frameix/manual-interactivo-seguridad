@@ -72,15 +72,51 @@ export default function SuperAdminPanel({ isOpen, onClose }: SuperAdminPanelProp
   const [newRoleEmail, setNewRoleEmail] = useState('');
   const [newRoleType, setNewRoleType] = useState('teacher');
 
-  // Fetch Roles
+  const [allUsers, setAllUsers] = useState<Record<string, any>>({});
+
+  // Fetch Roles and Users
   useEffect(() => {
     if (!isOpen) return;
     const rolesRef = ref(db, 'roles');
-    const unsubscribe = onValue(rolesRef, (snapshot) => {
+    const unsubRoles = onValue(rolesRef, (snapshot) => {
       setUserRoles(snapshot.val() || {});
     });
-    return () => unsubscribe();
+
+    const usersRef = ref(db, 'users');
+    const unsubUsers = onValue(usersRef, (snapshot) => {
+      setAllUsers(snapshot.val() || {});
+    });
+
+    return () => {
+      unsubRoles();
+      unsubUsers();
+    };
   }, [isOpen]);
+
+  const combinedUsers = React.useMemo(() => {
+    const usersMap = new Map<string, { email: string, role?: string, lastLogin?: number }>();
+    
+    // Add from roles
+    Object.entries(userRoles).forEach(([encodedEmail, role]) => {
+      const email = encodedEmail.replace(/,/g, '.');
+      usersMap.set(email, { email, role });
+    });
+
+    // Add from registered users
+    Object.values(allUsers).forEach((u: any) => {
+      if (u.email) {
+        const existing = usersMap.get(u.email) || { email: u.email };
+        existing.lastLogin = u.lastLogin;
+        usersMap.set(u.email, existing);
+      }
+    });
+
+    return Array.from(usersMap.values()).sort((a, b) => {
+      if (a.role && !b.role) return -1;
+      if (!a.role && b.role) return 1;
+      return (b.lastLogin || 0) - (a.lastLogin || 0);
+    });
+  }, [userRoles, allUsers]);
 
   const handleAddRole = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -351,20 +387,28 @@ export default function SuperAdminPanel({ isOpen, onClose }: SuperAdminPanelProp
                       </tr>
                     </thead>
                     <tbody>
-                      {Object.keys(userRoles).length === 0 ? (
+                      {combinedUsers.length === 0 ? (
                         <tr>
                           <td colSpan={3} className="px-5 py-8 text-center text-sm text-neutral-500 dark:text-zinc-500 italic">
-                            No hay roles dinámicos asignados.
+                            No hay usuarios registrados ni roles asignados.
                           </td>
                         </tr>
                       ) : (
-                        Object.entries(userRoles).map(([encodedEmail, role]) => (
-                          <tr key={encodedEmail} className="border-b border-neutral-100 dark:border-neutral-800/50 last:border-0 hover:bg-neutral-50 dark:hover:bg-[#121214] transition-colors">
+                        combinedUsers.map(({ email, role, lastLogin }) => (
+                          <tr key={email} className="border-b border-neutral-100 dark:border-neutral-800/50 last:border-0 hover:bg-neutral-50 dark:hover:bg-[#121214] transition-colors">
                             <td className="px-5 py-3 text-sm font-medium text-neutral-900 dark:text-zinc-200">
-                              {encodedEmail.replace(/,/g, '.')}
+                              <div className="flex flex-col">
+                                <span>{email}</span>
+                                {lastLogin && (
+                                  <span className="text-[10px] text-neutral-500 dark:text-zinc-500 font-mono">
+                                    Último acceso: {new Date(lastLogin).toLocaleDateString()}
+                                  </span>
+                                )}
+                              </div>
                             </td>
                             <td className="px-5 py-3">
                               <span className={`px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider rounded-full ${
+                                !role ? 'bg-neutral-100 text-neutral-600 dark:bg-zinc-900/50 dark:text-zinc-500' :
                                 role === 'teacher' ? 'bg-indigo-100 text-indigo-700 dark:bg-indigo-900/40 dark:text-indigo-400' :
                                 role === 'superadmin' ? 'bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-400' :
                                 role === 'guest' ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-400' :
@@ -373,7 +417,8 @@ export default function SuperAdminPanel({ isOpen, onClose }: SuperAdminPanelProp
                                 role === 'premium' ? 'bg-purple-100 text-purple-700 dark:bg-purple-900/40 dark:text-purple-400' :
                                 'bg-gray-100 text-gray-700 dark:bg-gray-900/40 dark:text-gray-400'
                               }`}>
-                                {role === 'teacher' ? 'Profesor' : 
+                                {!role ? 'SaaS (Sin rol)' :
+                                 role === 'teacher' ? 'Profesor' : 
                                  role === 'superadmin' ? 'SuperAdmin' : 
                                  role === 'guest' ? 'Invitado' :
                                  role === 'alumno' ? 'Alumno (UNSM)' :
@@ -381,14 +426,26 @@ export default function SuperAdminPanel({ isOpen, onClose }: SuperAdminPanelProp
                                  role === 'premium' ? 'Premium (SaaS)' : 'Desconocido'}
                               </span>
                             </td>
-                            <td className="px-5 py-3 text-right">
-                              <button
-                                onClick={() => handleRemoveRole(encodedEmail)}
-                                className="p-2 text-red-500 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"
-                                title="Revocar Rol"
-                              >
-                                <X className="w-4 h-4" />
-                              </button>
+                            <td className="px-5 py-3 text-right flex items-center justify-end gap-2">
+                              {!role ? (
+                                <button
+                                  onClick={() => {
+                                    setNewRoleEmail(email);
+                                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                                  }}
+                                  className="px-3 py-1 bg-amber-50 hover:bg-amber-100 text-amber-700 dark:bg-amber-950/30 dark:hover:bg-amber-900/50 dark:text-amber-400 rounded-lg text-[10px] font-bold uppercase transition-colors"
+                                >
+                                  Asignar
+                                </button>
+                              ) : (
+                                <button
+                                  onClick={() => handleRemoveRole(email.replace(/\./g, ','))}
+                                  className="p-2 text-red-500 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"
+                                  title="Revocar Rol"
+                                >
+                                  <X className="w-4 h-4" />
+                                </button>
+                              )}
                             </td>
                           </tr>
                         ))
