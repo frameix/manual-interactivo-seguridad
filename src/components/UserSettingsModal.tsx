@@ -231,10 +231,18 @@ export const UserSettingsModal: React.FC<UserSettingsModalProps> = ({ isOpen, on
               </button>
             ) : (
               <div className="space-y-4 p-5 border border-red-200 dark:border-red-900/30 rounded-xl bg-red-50/30 dark:bg-red-950/10">
-                <h3 className="text-sm font-bold text-red-600 dark:text-red-400 flex items-center gap-2">
-                  <Trash2 className="w-4 h-4" />
-                  Zona de Peligro: Eliminar Cuenta
-                </h3>
+                <div className="flex items-center justify-between">
+                  <h3 className="text-sm font-bold text-red-600 dark:text-red-400 flex items-center gap-2">
+                    <Trash2 className="w-4 h-4" />
+                    Zona de Peligro: Eliminar Cuenta
+                  </h3>
+                  <button 
+                    onClick={() => { setShowDeleteZone(false); setDeleteInput(''); setError(null); }}
+                    className="text-xs font-medium text-neutral-500 hover:text-neutral-700 dark:text-zinc-500 dark:hover:text-zinc-300 transition-colors px-2 py-1 rounded hover:bg-red-100 dark:hover:bg-red-900/40"
+                  >
+                    Ocultar
+                  </button>
+                </div>
                 
                 <p className="text-sm text-neutral-700 dark:text-zinc-400 leading-relaxed">
                   Al eliminar tu cuenta, perderás acceso a todo el contenido del Manual Interactivo. Tus datos, progreso y acceso serán borrados permanentemente y <strong>esta acción no se puede deshacer</strong>.
